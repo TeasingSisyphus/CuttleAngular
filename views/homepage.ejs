@@ -1,0 +1,13 @@
+<body ng-app='homepage'>
+    <script type='text/javascript' src='/js/app.js'></script>
+    <div ng-controller='homepageController as homepage'>
+        <form id='gameForm' ng-submit='homepage.createGame()'>
+            <input type='text' size='50' id='game_field' ng-model='homepage.name'> </input>
+            <input type='submit'></input>
+        </form>
+        {{homepage.name}}
+        <li ng-repeat='game in homepage.games'>
+            NAME: {{game.name}}     STATUS: {{game.status}}
+        </li>
+    </div>
+</body>
