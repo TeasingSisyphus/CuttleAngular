@@ -6,34 +6,23 @@
 //Socket Stuff//
 ////////////////
 
-	socket.on('connect', function() {
-		socket.get('/game/subscribe', function(res) {
-			console.log(res);
-		});
 
-		socket.on('Game', function(obj) {
-			switch (obj.verb) {
-				case 'created':
-					console.log(obj.data);
-					break;
-			}
-		});
-
-	});
-
-	app.controller('homepageController', function() {
+	app.controller('homepageController', function($scope) {
 		this.games = [];
-		this.balls = 'BALLS';
 		this.name  = '';
 
 		this.createGame = function() {
 			console.log('\nForging ahead');
-			var name = this.name;
+			var gameName = this.name;
+
 			socket.post('/game/create', {
-				name: this.name
+				name: gameName
 			}, function(res) {
 				console.log(res);
 			});
+
+			this.name = ''; 
+
 		};
 
 		/*  $('#gameForm').on('submit', function (){
@@ -43,8 +32,33 @@
 
 		this.games.push(gameOne);
 		this.games.push(gameTwo);
+
+
+		var self = this;
+		console.log(self);
+		socket.on('connect', function() {
+			socket.get('/game/subscribe', function(res) {
+				console.log(res);
+			});
+
+			$scope.$apply(socket.on('game', function(obj) {
+				console.log(self);
+				console.log('\nlogging scope:');
+				console.log($scope);
+				switch (obj.verb) {
+					case 'created':
+						console.log(obj.data);
+						$scope.homepage.games.push(obj.data);
+						console.log($scope.homepage.games);
+						break;
+				}
+			}));
+
+		});
 	});
 })();
+
+
 
 		var Game = function() {
 			this.status = true;

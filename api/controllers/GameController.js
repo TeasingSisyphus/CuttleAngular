@@ -20,8 +20,10 @@ module.exports = {
 		Game.create({
 			name: req.body.name
 		}).exec(function(err, newGame) {
-			console.log('Created game: ' + newGame.name + 
+			console.log('\nCreated game: ' + newGame.name + 
 			', with ID: ' + newGame.id);
+
+			console.log(newGame);
 
 			Game.publishCreate({
 				name   : newGame.name,
