@@ -72,6 +72,8 @@
 						$scope.homepage.games.push(obj.data);
 						console.log($scope.homepage.games);
 						break;
+					case 'updated':
+						console.log(obj.data);
 				}
 
 				$scope.$apply();

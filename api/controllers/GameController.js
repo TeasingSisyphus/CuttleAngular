@@ -54,7 +54,7 @@ module.exports = {
 	//Subscribes a socket to a Game instance using provided
 	//id of requested game
 	gameSubscribe : function(req, res) {
-		console.log('gameSubscribe called');
+		console.log('\ngameSubscribe called');
 		//If request came through socket and has an 'id' param,
 		//Query for the Game
 		if ( req.isSocket && req.body.hasOwnProperty('id') ) {
@@ -82,16 +82,14 @@ module.exports = {
 						console.log(newPlayer);
 
 						console.log('\nsubscribing socket ' + req.socket.id + ' to game: ' + foundGame.id);
-						//BUG: THIS IS NOT SUBSCRIBING THE SOCKET
+
+						//Subscribe the requesting socket to the requested Game
+						//The socket will now be notified whenever publishUpdate() or publishDestroy() are used
+						//to announce changes to the model
 						Game.subscribe(req.socket, foundGame);
 
-						foundGame.save();
-
-						console.log("\nlogging all subscribers");
-						console.log(Game.subscribers(foundGame));
-
-
-
+						//TODO: remove this when homepage.joinGame makes two requests and 
+						//recieves the gameView
 						Game.publishUpdate(foundGame.id, {
 							game: foundGame
 						});
