@@ -2,15 +2,17 @@
 	var app = angular.module('homepage', []);
 	var socket = io.connect('http://localhost:1337');
 
-////////////////
-//Socket Stuff//
-////////////////
 
 
 	app.controller('homepageController', function($scope) {
+		//List of all games currently being played
 		this.games = [];
+
+		//Name of the game currently being entered in the form
+		//This value is 2-way bound to the text input in homepage.ejs
 		this.name  = '';
 
+		//Requests creation of new game, then clears form
 		this.createGame = function() {
 			console.log('\nForging ahead');
 			var gameName = this.name;
@@ -25,48 +27,39 @@
 
 		};
 
-		/*  $('#gameForm').on('submit', function (){
-			console.log('submit');
-			console.log(this.name);
-		});  */
+		////////////////
+		//Socket Stuff//
+		////////////////
 
-		this.games.push(gameOne);
-		this.games.push(gameTwo);
-
-
-		var self = this;
-		console.log(self);
+		//When the socket connects, request to subscribe to the Game class room
+		//This will enable notifications when a Game is created, or destroyed
 		socket.on('connect', function() {
 			socket.get('/game/subscribe', function(res) {
-				console.log(res);
+				res.forEach(function(game, index, games) {
+					$scope.homepage.games.push(game);
+				});
+				console.log($scope.homepage.games);
+				$scope.$apply();
 			});
 
-			$scope.$apply(socket.on('game', function(obj) {
-				console.log(self);
-				console.log('\nlogging scope:');
-				console.log($scope);
+			//'game' model events signify that a game was created, destroyed,
+			//or updated
+			socket.on('game', function(obj) {
+				//obj.verb is a string signifying the type of model event
 				switch (obj.verb) {
+					//If a game was created, update hompageController.games
 					case 'created':
 						console.log(obj.data);
 						$scope.homepage.games.push(obj.data);
 						console.log($scope.homepage.games);
 						break;
 				}
-			}));
+
+				$scope.$apply();
+
+			});
 
 		});
 	});
 })();
 
-
-
-		var Game = function() {
-			this.status = true;
-			this.name = '';
-		};
-
-		var gameOne = new Game();
-		var gameTwo = new Game();
-
-		gameOne.name = 'DatGame';
-		gameTwo.name = 'Aww yiss';
