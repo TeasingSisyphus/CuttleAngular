@@ -27,6 +27,25 @@
 
 		};
 
+		//Requests to subscribe to a Game instance, then requests
+		//The gameView
+		this.joinGame = function(id) {
+			console.log("Requesting to join game");
+			console.log(id);
+
+			//Request to subscribe to the game specified by id
+			socket.get('/game/game_subscribe', {id: id}, function(res) {
+				console.log(res);
+			});
+		};
+
+		this.updateAll = function() {
+			console.log('requesting updateAll');
+			socket.get('/game/update_all', function(res) {
+				console.log(res);
+			});
+		};
+
 		////////////////
 		//Socket Stuff//
 		////////////////

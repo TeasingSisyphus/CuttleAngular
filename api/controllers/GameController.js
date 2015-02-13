@@ -8,7 +8,7 @@
 module.exports = {
 	//This action subscribes a socket to the Game class room, then
 	//responds with an array of partial Game objects
-	subscribe: function(req, res) {
+	subscribe     : function(req, res) {
 		if (req.isSocket) {
 		console.log('subscribing socket: ' + req.socket.id + 
 		'to Game class room');
@@ -32,7 +32,7 @@ module.exports = {
 
 	//Creates a new game and publishes creation to all sockets subscribed
 	//to the Game class room
-	create   : function(req, res) {
+	create        : function(req, res) {
 		console.log('creating Game\n');
 		console.log(req.body);
 		Game.create({
@@ -49,6 +49,72 @@ module.exports = {
 				status : newGame.status
 			});
 		});
-	}
+	},
+
+	//Subscribes a socket to a Game instance using provided
+	//id of requested game
+	gameSubscribe : function(req, res) {
+		console.log('gameSubscribe called');
+		//If request came through socket and has an 'id' param,
+		//Query for the Game
+		if ( req.isSocket && req.body.hasOwnProperty('id') ) {
+			Game.findOne(req.body.id).populate('players').exec(
+			function (err, foundGame) {
+				console.log("\nlogging game");
+
+				if (err || !foundGame) {
+					console.log("Game not found");
+					res.send(404);
+				} else{
+
+					console.log(foundGame);
+					//Check if this player is first to join game
+					var isP1 = (foundGame.players.length === 0);
+					//Create new player
+					Player.create({
+						isPlayerOne: isP1,
+						socketId   : req.socket.id,
+						currentGame: foundGame 
+					}).exec(
+					function(err, newPlayer) {
+						console.log("\ncreated new player :");
+						console.log(newPlayer);
+						console.log('wut');
+
+						console.log('subscribing socket ' + req.socket.id + ' to game: ' + foundGame.id);
+						//BUG: THIS IS NOT SUBSCRIBING THE SOCKET
+						Game.subscribe(req.socket, foundGame);
+
+						console.log("\nlogging all subscribers");
+						console.log(Game.subscribers(foundGame));
+
+
+
+						Game.publishUpdate(foundGame.id, {
+							game: foundGame
+						});
+
+						res.send({game: foundGame});
+					
+
+					});
+
+				}
+			});
+		}
+	},
+
+	updateAll       : function(req, res) {
+		console.log('Publishing All updates');
+		Game.find().populate('players').exec(
+		function(err, games) {
+			games.forEach(function(game, index, gameList) {
+				console.log('publishing updates for game: ' + game.id);
+				Game.publishUpdate(game.id, {
+					gameId: game.id
+				});
+			});
+		});
+	} 
 };
 

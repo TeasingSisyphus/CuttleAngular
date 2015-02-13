@@ -8,8 +8,9 @@
             <input type='text' size='50' id='game_field' ng-model='homepage.name'> </input>
             <input type='submit'></input>
         </form>
+        <button ng-click='homepage.updateAll()'>Update All</button>
 
-        <li ng-repeat='game in homepage.games' class='game'>
+        <li ng-repeat='game in homepage.games' class='game' id='{{game.id}}' ng-click='homepage.joinGame(game.id)'>
             NAME: {{game.name}}     STATUS: {{game.status}}
         </li>
 
