@@ -60,14 +60,15 @@ module.exports = {
 		if ( req.isSocket && req.body.hasOwnProperty('id') ) {
 			Game.findOne(req.body.id).populate('players').exec(
 			function (err, foundGame) {
-				console.log("\nlogging game");
 
 				if (err || !foundGame) {
 					console.log("Game not found");
 					res.send(404);
 				} else{
 
-					console.log(foundGame);
+					//console.log("\nlogging game");
+					//console.log(foundGame);
+
 					//Check if this player is first to join game
 					var isP1 = (foundGame.players.length === 0);
 					//Create new player
@@ -79,11 +80,12 @@ module.exports = {
 					function(err, newPlayer) {
 						console.log("\ncreated new player :");
 						console.log(newPlayer);
-						console.log('wut');
 
-						console.log('subscribing socket ' + req.socket.id + ' to game: ' + foundGame.id);
+						console.log('\nsubscribing socket ' + req.socket.id + ' to game: ' + foundGame.id);
 						//BUG: THIS IS NOT SUBSCRIBING THE SOCKET
 						Game.subscribe(req.socket, foundGame);
+
+						foundGame.save();
 
 						console.log("\nlogging all subscribers");
 						console.log(Game.subscribers(foundGame));
