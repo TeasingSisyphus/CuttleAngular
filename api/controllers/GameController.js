@@ -64,7 +64,7 @@ module.exports = {
 					if (err || !foundGame) {
 						console.log("Game not found");
 						res.send(404);
-					} else if (foundGame.players.length < foundGame.playerLimit){
+					} else if (foundGame.players.length < foundGame.playerLimit) {
 
 						//console.log("\nlogging game");
 						//console.log(foundGame);
@@ -88,6 +88,8 @@ module.exports = {
 								//The socket will now be notified whenever publishUpdate() or publishDestroy() are used
 								//to announce changes to the model
 								Game.subscribe(req.socket, foundGame);
+
+								console.log(Game.subscribers(foundGame.id).length);
 
 								if (foundGame.players.length === foundGame.playerLimit) {
 									foundGame.status = false;

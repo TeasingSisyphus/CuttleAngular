@@ -69,7 +69,7 @@
 							}
 
 						}
-						
+
 					}
 				});
 			};
@@ -129,6 +129,7 @@
 		this.turn = 0;
 
 		//This event fires when the homepage receives a game from the server for the first time
+		//The $rootScope.$emit is defined in homepageController.joinGame()
 		$rootScope.$on('gameView', function(event, game) {
 			console.log('gameView fired');
 			$scope.game.id = game.id;
