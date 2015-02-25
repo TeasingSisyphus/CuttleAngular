@@ -45,27 +45,31 @@
 					console.log("Recieved response to join game");
 					console.log(res);
 
-					//Request view of the game specified by id
-					if (res.game.hasOwnProperty('id')) {
+					if (res.hasOwnProperty('game')) {
 
-						console.log(res.game.id);
+						//Request view of the game specified by id
+						if (res.game.hasOwnProperty('id')) {
 
-						if (res.game.id === id) {
-							console.log("Correct ID");
+							console.log(res.game.id);
 
-							$scope.homepage.gameView = true;
-							console.log($scope.homepage.gameView);
-							console.log($scope.game);
-							console.log($scope.homepage);
-							console.log($scope);
+							if (res.game.id === id) {
+								console.log("Correct ID");
 
-							//emit an event through $rootscope that will trigger a listener defined in gameController
-							$rootScope.$emit('gameView', res.game);
+								$scope.homepage.gameView = true;
+								console.log($scope.homepage.gameView);
+								console.log($scope.game);
+								console.log($scope.homepage);
+								console.log($scope);
 
-							$scope.$apply();
+								//emit an event through $rootscope that will trigger a listener defined in gameController
+								$rootScope.$emit('gameView', res.game);
+
+								$scope.$apply();
+
+							}
 
 						}
-
+						
 					}
 				});
 			};
@@ -115,9 +119,6 @@
 		}
 	]); //End of homePageController
 
-	app.controller('viewController', function($scope) {
-		this.gameView = false;
-	});
 
 	app.controller('gameController', function($scope, $rootScope) {
 		this.id = null;

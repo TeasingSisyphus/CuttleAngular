@@ -31,6 +31,11 @@ module.exports = {
       defaultsTo: 8
     },
 
+    playerLimit: {
+      type: 'integer',
+      defaultsTo: 2
+    },
+
     turn: {
       type: 'integer',
       defaultsTo: 0

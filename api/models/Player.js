@@ -13,8 +13,8 @@ module.exports = {
   		model: 'game',
   	},
 
-  	isPlayerOne: {
-  		type: 'boolean',
+  	playerNumber: {
+  		type: 'integer',
   		required: true
   	},
 

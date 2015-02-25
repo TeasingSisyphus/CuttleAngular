@@ -64,22 +64,23 @@ module.exports = {
 					if (err || !foundGame) {
 						console.log("Game not found");
 						res.send(404);
-					} else {
+					} else if (foundGame.players.length < foundGame.playerLimit){
 
 						//console.log("\nlogging game");
 						//console.log(foundGame);
 
 						//Check if this player is first to join game
-						var isP1 = (foundGame.players.length === 0);
+						var playerNum = (foundGame.players.length);
 						//Create new player
 						Player.create({
-							isPlayerOne: isP1,
+							playerNumber: playerNum,
 							socketId: req.socket.id,
 							currentGame: foundGame
 						}).exec(
 							function(err, newPlayer) {
 								console.log("\ncreated new player :");
 								console.log(newPlayer);
+								console.log(foundGame);
 
 								console.log('\nsubscribing socket ' + req.socket.id + ' to game: ' + foundGame.id);
 
@@ -88,11 +89,11 @@ module.exports = {
 								//to announce changes to the model
 								Game.subscribe(req.socket, foundGame);
 
-								//TODO: remove this when homepage.joinGame makes two requests and 
-								//recieves the gameView
-								Game.publishUpdate(foundGame.id, {
-									game: foundGame
-								});
+								if (foundGame.players.length === foundGame.playerLimit) {
+									foundGame.status = false;
+									//TODO: implement socket message to notify all clients that this game's status has changed
+								}
+
 
 								res.send({
 									game: foundGame
@@ -101,6 +102,8 @@ module.exports = {
 
 							});
 
+					} else {
+						res.send("Game is full!");
 					}
 				});
 		}
