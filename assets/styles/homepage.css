@@ -1,7 +1,14 @@
 #formName{
-	height: 25px;
+	height: 30px;
+}
+
+#gameForm{
+	height: 80px;
 }
 
 .game{
 	color: green;
+	font-size: 40px;
+	font-weight: bold;
 }
+
