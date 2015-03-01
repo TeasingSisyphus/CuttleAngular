@@ -11,16 +11,17 @@ module.exports = {
 	subscribe: function(req, res) {
 		if (req.isSocket) {
 			console.log('subscribing socket: ' + req.socket.id +
-				'to Game class room');
-			Game.watch(req);
-			Game.find().exec(function(err, games) {
+				'to GameDisplay class room');
+			GameDisplay.watch(req);
+			GameDisplay.find().exec(function(err, games) {
 				var gameList = [];
 				games.forEach(
 					function(game, index, games) {
 						gameList.push({
 							name: game.name,
-							id: game.id,
-							status: game.status
+							gameId: game.gameId,
+							status: game.status,
+							playerLimit: game.playerLimit
 						});
 					});
 
@@ -43,28 +44,43 @@ module.exports = {
 
 			console.log(newGame);
 
-			Game.publishCreate({
-				name: newGame.name,
-				id: newGame.id,
-				status: newGame.status
-			});
+			if (err || !newGame) {
+				res.send(404);
+			} else {
+
+				GameDisplay.create({
+					name: newGame.name,
+					gameId: newGame.id,
+					playerLimit: newGame.playerLimit
+
+				}).exec(function(e, newDisplay) {
+
+					GameDisplay.publishCreate({
+						name: newDisplay.name,
+						gameId: newDisplay.gameId,
+						status: newDisplay.status,
+						playerLimit: newDisplay.playerLimit
+					});
+				});
+
+			}
 		});
 	},
 
 	//Subscribes a socket to a Game instance using provided
 	//id of requested game
 	gameSubscribe: function(req, res) {
-		console.log('\ngameSubscribe called');
 		//If request came through socket and has an 'id' param,
-		//Query for the Game
+		//query for the Game
 		if (req.isSocket && req.body.hasOwnProperty('id')) {
+			console.log('\ngameSubscribe called by socket ' + req.socket.id + ' for game ' + req.body.id);
 			Game.findOne(req.body.id).populate('players').exec(
 				function(err, foundGame) {
 
 					if (err || !foundGame) {
 						console.log("Game not found");
 						res.send(404);
-					} else if (foundGame.players.length < foundGame.playerLimit) {
+					} else if (foundGame.players.length < foundGame.playerLimit && foundGame.status === true) {
 
 						//console.log("\nlogging game");
 						//console.log(foundGame);
@@ -78,9 +94,8 @@ module.exports = {
 							currentGame: foundGame
 						}).exec(
 							function(err, newPlayer) {
-								console.log("\ncreated new player :");
+								console.log("\ncreated new player for game: " + foundGame.id);
 								console.log(newPlayer);
-								console.log(foundGame);
 
 								console.log('\nsubscribing socket ' + req.socket.id + ' to game: ' + foundGame.id);
 
@@ -89,11 +104,26 @@ module.exports = {
 								//to announce changes to the model
 								Game.subscribe(req.socket, foundGame);
 
-								console.log(Game.subscribers(foundGame.id).length);
-
-								if (foundGame.players.length === foundGame.playerLimit) {
+								//If the new player fills the game (game reaches playerLimit), 
+								//Prevent other users from joining the game
+								if (foundGame.players.length === foundGame.playerLimit - 1) {
 									foundGame.status = false;
-									//TODO: implement socket message to notify all clients that this game's status has changed
+									foundGame.save();
+
+
+									GameDisplay.publishUpdate(foundGame.id, {
+										name: foundGame.name,
+										gameId: foundGame.id,
+										status: foundGame.status,
+										playerLimit: foundGame.playerLimit
+									});
+
+									//Update the corresponding GameDisplay for future users
+									GameDisplay.findOne(foundGame.id, 
+									function(e, foundDisplay){
+										foundDisplay.status = false;
+										foundDisplay.save();
+									});
 								}
 
 

@@ -98,17 +98,36 @@
 
 				//'game' model events signify that a game was created, destroyed,
 				//or updated
-				socket.on('game', function(obj) {
+				socket.on('gamedisplay', function(obj) {
+					console.log('\ngamedisplay event fired');
 					//obj.verb is a string signifying the type of model event
 					switch (obj.verb) {
-						//If a game was created, update hompageController.games
+						//If a game was created, add it to homepage's list of games
 						case 'created':
+						console.log('GameDisplay created: ');
 							console.log(obj.data);
 							$scope.homepage.games.push(obj.data);
-							console.log($scope.homepage.games);
 							break;
+						//If a GameDisplay was updated, find which and update it in the list
 						case 'updated':
+							console.log('GameDisplay updated: ');
 							console.log(obj.data);
+
+							var foundIt = false;
+							$scope.homepage.games.forEach(
+							function(game, index, games){
+									if (game.gameId === obj.data.gameId) {
+										game.status = obj.data.status;
+										foundIt = true;
+									}
+							});
+
+							//If updated game is not found in homepage game list, append it
+							if (!foundIt) {
+								$scope.homepage.games.push(obj.data);
+							}
+							break;
+
 					}
 
 					$scope.$apply();

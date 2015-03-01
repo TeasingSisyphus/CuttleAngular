@@ -29,8 +29,8 @@
             <button ng-click='homepage.updateAll()'>Update All</button>
 
 
-            <li ng-repeat='game in homepage.games' class='game' id='{{game.id}}' ng-click='homepage.joinGame(game.id)'>
-                NAME: {{game.name}}     STATUS: {{game.status}}
+            <li ng-repeat='game in homepage.games' class='game' id='{{game.gameId}}' ng-click='homepage.joinGame(game.gameId)'>
+                NAME: {{game.name}}    Player Limit: {{game.playerLimit}}     STATUS: {{game.status}}
             </li>
             
         </div>
