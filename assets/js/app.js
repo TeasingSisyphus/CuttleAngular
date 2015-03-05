@@ -153,7 +153,16 @@
 			console.log('gameView fired');
 			$scope.game.id = game.id;
 			$scope.game.name = game.name;
+			$scope.game.deck = game.deck;
+			console.log($scope.game.deck);
 		});
+
+		this.deal = function() {
+			socket.get('/game/deal', {id: $scope.game.id}, 
+			function(res) {
+				console.log(res);
+			});
+		}
 
 	}); //End of gameController
 

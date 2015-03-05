@@ -41,6 +41,7 @@
             <p> {{3 + 7}} </p>
             <button ng-click="game.drawP0()">P0 Draw</button>
             <button ng-click="game.drawP1()">P1 Draw</button>
+            <button ng-click="game.deal()">Deal Hands</button>
 
             <div id="op_wrap">
                 <div class='hand_wrap'>
@@ -54,7 +55,7 @@
                 </div>
             </div>      
             <img ng-repeat='card in game.deck' class='card' id= '{{card.img}}' ng-src="{{card.img}}" alt='{{card.alt}}'></img>
-            <img ng-source='{{game.source_test}}' id='{{game.source_test}}'></img>
+            <img ng-repeat='card in gameWrap.game.deck' class='card' id= '{{card.img}}' ng-src="{{card.img}}" alt='{{card.alt}}'></img>
             
             </div>
         </div>  
