@@ -104,23 +104,23 @@
 					switch (obj.verb) {
 						//If a game was created, add it to homepage's list of games
 						case 'created':
-						console.log('GameDisplay created: ');
+							console.log('GameDisplay created: ');
 							console.log(obj.data);
 							$scope.homepage.games.push(obj.data);
 							break;
-						//If a GameDisplay was updated, find which and update it in the list
+							//If a GameDisplay was updated, find which and update it in the list
 						case 'updated':
 							console.log('GameDisplay updated: ');
 							console.log(obj.data);
 
 							var foundIt = false;
 							$scope.homepage.games.forEach(
-							function(game, index, games){
+								function(game, index, games) {
 									if (game.gameId === obj.data.gameId) {
 										game.status = obj.data.status;
 										foundIt = true;
 									}
-							});
+								});
 
 							//If updated game is not found in homepage game list, append it
 							if (!foundIt) {
@@ -158,11 +158,26 @@
 		});
 
 		this.deal = function() {
-			socket.get('/game/deal', {id: $scope.game.id}, 
-			function(res) {
-				console.log(res);
-			});
-		}
+			socket.get('/game/deal', {
+					id: $scope.game.id
+				},
+				function(res) {
+					console.log(res);
+				});
+		};
+
+		socket.on('game', function(obj) {
+			console.log('\nGame event fired');
+			switch (obj.verb) {
+				case 'updated':
+					console.log('Game was updated; logging data: ');
+					console.log(obj.data);
+					$scope.game.players = obj.data.players;
+					$scope.game.deck = obj.data.game.deck;
+					$scope.game.scrap = obj.data.game.scrap;
+			}
+			$scope.$apply();
+		});
 
 	}); //End of gameController
 

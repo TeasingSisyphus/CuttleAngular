@@ -5,6 +5,16 @@
  * @help        :: See http://links.sailsjs.org/docs/controllers
  */
 
+//////////////////////
+//Object Definitions//
+//////////////////////
+var PlayerTemp = function() {
+	this.playerNumber = null;
+	this.socketId = '';
+	this.hand = [];
+	this.field = [];
+}
+
 module.exports = {
 	//This action subscribes a socket to the Game class room, then
 	//responds with an array of partial Game objects
@@ -63,26 +73,26 @@ module.exports = {
 					});
 
 					//This is causing extremely POOR PERFORMANCE
-					for (suit = 0; suit <= 3 ; suit++) {
-						for (rank = 1; rank <= 13; rank++){
+					for (suit = 0; suit <= 3; suit++) {
+						for (rank = 1; rank <= 13; rank++) {
 							var path = 'images/cards/card_' + suit + '_' + rank + '.png';
 							//TODO: Use switch statements to flesh out alt text
-							var txt  = rank + ' of ' + suit;
+							var txt = rank + ' of ' + suit;
 							Card.create({
-								suit : suit,
-								rank : rank,
+								suit: suit,
+								rank: rank,
 								index: 13 * suit + rank,
-								img  : path, 
-								alt  : txt,
+								img: path,
+								alt: txt,
 							}).exec(
-							function(cardError, card){
-								if (cardError || !card) {
-									console.log("Card not created for game " + newGame.id);
-								} else {
-									newGame.deck.add(card.id);
-									newGame.save();
-								}
-							})
+								function(cardError, card) {
+									if (cardError || !card) {
+										console.log("Card not created for game " + newGame.id);
+									} else {
+										newGame.deck.add(card.id);
+										newGame.save();
+									}
+								})
 						}
 					} //End of for loops
 				});
@@ -171,11 +181,11 @@ module.exports = {
 									});
 
 									//Update the corresponding GameDisplay for future users
-									GameDisplay.findOne(foundGame.id, 
-									function(e, foundDisplay){
-										foundDisplay.status = false;
-										foundDisplay.save();
-									});
+									GameDisplay.findOne(foundGame.id,
+										function(e, foundDisplay) {
+											foundDisplay.status = false;
+											foundDisplay.save();
+										});
 								}
 
 
@@ -197,10 +207,43 @@ module.exports = {
 	deal: function(req, res) {
 		console.log('\nDeal requested');
 		if (req.isSocket && req.body.hasOwnProperty('id')) {
-			Game.findOne(req.body.id).populate('players').populate('deck').exec(
-			function(error, foundGame) {
-				console.log("Found game: " + foundGame.id);
-			});
+			Game.findOne(req.body.id).populate('players').populate('deck').populate('scrap').exec(
+				function(error, foundGame) {
+					console.log("Found game: " + foundGame.id);
+
+					//Temp copy of game (without populated player-hands and fields) to be sent via publishUpdate
+					var gameSend = {};
+					//Temp copies of players to be sent via publishUpdate
+					var p0 = new PlayerTemp();
+					var p1 = new PlayerTemp();
+
+					//Deal 1 extra card to player 0
+					foundGame.players[0].hand.add(foundGame.deck[0].id);
+					p0.hand.push(foundGame.deck.splice(0, 1)[0]);
+					for (i = 1; i <= 5; i++) {
+						//console.log(foundGame.deck[0]);
+						foundGame.players[1].hand.add(foundGame.deck[0].id);
+						p1.hand.push(foundGame.deck.splice(0, 1)[0]);
+						//console.log(foundGame.deck[0]);
+						foundGame.players[0].hand.add(foundGame.deck[0].id);
+						p0.hand.push(foundGame.deck.splice(0, 1)[0]);
+					}
+					foundGame.save();
+					foundGame.players[0].save();
+					foundGame.players[1].save();
+
+					var players = [p0, p1];
+					console.log(players);
+
+					Game.publishUpdate(foundGame.id, {
+						game: foundGame,
+						players: players,
+						p0: p0,
+						p1: p1,
+						p0Hand: p0.hand,
+						p1Hand: p1.hand
+					});
+				});
 		}
 	},
 
