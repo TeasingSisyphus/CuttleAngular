@@ -5,6 +5,8 @@ a [Sails](http://sailsjs.org) application
 
 
 PREVIOUS:
+	-Front end now updates GameController when Game event fires through socket
+	-Hands can now be dealt
 	-The homepage now updates to reflect when a game fills
 		-Implemented GameDisplay model to dichotomize subscription to all games for homepage with subscription
 			to an individual game to play
@@ -14,7 +16,9 @@ PREVIOUS:
 	-Client can request to be subscribed to a game
 
 NEXT:
-	-Instantiate Deck
-	-Enable dealing
+	-Clean up Socket organization in app.js in GameController
+	-Fix Front end to display only YOUR CARDS
 	-Enable shuffling
+		-DECIDE BETWEEN USING COLLECTION INDEX VS SYNTHETIC INDEX
+			-Leaning towards collection index
 	-Enable drawing a card
