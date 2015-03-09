@@ -121,6 +121,7 @@ module.exports = {
 
 						//Check if this player is first to join game
 						var playerNum = (foundGame.players.length);
+						console.log('Game has ' + playerNum + ' players before new player joins');
 						//Create new player
 						Player.create({
 							playerNumber: playerNum,

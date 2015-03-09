@@ -18,6 +18,9 @@ PREVIOUS:
 NEXT:
 	-Clean up Socket organization in app.js in GameController
 	-Fix Front end to display only YOUR CARDS
+		-Modify gameController to include playerNum in app.js
+		-Modify homepage.ejs to account for playerNum
+			-Find cardback image
 	-Enable shuffling
 		-DECIDE BETWEEN USING COLLECTION INDEX VS SYNTHETIC INDEX
 			-Leaning towards collection index
