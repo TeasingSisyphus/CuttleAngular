@@ -5,6 +5,7 @@ a [Sails](http://sailsjs.org) application
 
 
 PREVIOUS:
+	-Front end now displays your cards only (displays card back for opponent's cards)
 	-Front end now updates GameController when Game event fires through socket
 	-Hands can now be dealt
 	-The homepage now updates to reflect when a game fills
@@ -16,12 +17,13 @@ PREVIOUS:
 	-Client can request to be subscribed to a game
 
 NEXT:
+	-Fix playerNum bug
 	-Clean up Socket organization in app.js in GameController
-	-Fix Front end to display only YOUR CARDS
-		-Modify gameController to include playerNum in app.js
-		-Modify homepage.ejs to account for playerNum
-			-Find cardback image
 	-Enable shuffling
 		-DECIDE BETWEEN USING COLLECTION INDEX VS SYNTHETIC INDEX
 			-Leaning towards collection index
 	-Enable drawing a card
+
+BUGS:
+	-PLAYER NUMBER
+		-If two players join in rapid (not that rapid) succession, server will consider both players to be player 0

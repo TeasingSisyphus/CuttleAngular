@@ -36,7 +36,7 @@
 			//The gameView
 			this.joinGame = function(id) {
 				console.log("Requesting to join game");
-				console.log(id);
+
 
 				//Request to subscribe to the game specified by id
 				socket.get('/game/game_subscribe', {
@@ -50,16 +50,12 @@
 						//Request view of the game specified by id
 						if (res.game.hasOwnProperty('id')) {
 
-							console.log(res.game.id);
+
 
 							if (res.game.id === id) {
-								console.log("Correct ID");
 
 								$scope.homepage.gameView = true;
-								console.log($scope.homepage.gameView);
-								console.log($scope.game);
-								console.log($scope.homepage);
-								console.log($scope);
+
 
 								//emit an event through $rootscope that will trigger a listener defined in gameController
 								$rootScope.$emit('gameView', res.game);
@@ -146,6 +142,14 @@
 		this.scrap = [];
 		this.name = '';
 		this.turn = 0;
+		this.playerNum = null;
+
+		/////////////////////
+		//Root Scope Events//
+		/////////////////////
+		/*
+		 *These are Angular Events Used to Communicate Between Controllers
+		 */
 
 		//This event fires when the homepage receives a game from the server for the first time
 		//The $rootScope.$emit is defined in homepageController.joinGame()
@@ -154,8 +158,11 @@
 			$scope.game.id = game.id;
 			$scope.game.name = game.name;
 			$scope.game.deck = game.deck;
-			console.log($scope.game.deck);
+			$scope.game.playerNum = game.players.length;
+			console.log($scope.game.playerNum);
 		});
+
+
 
 		this.deal = function() {
 			socket.get('/game/deal', {
@@ -175,6 +182,8 @@
 					$scope.game.players = obj.data.players;
 					$scope.game.deck = obj.data.game.deck;
 					$scope.game.scrap = obj.data.game.scrap;
+
+					//Determine Player Number
 			}
 			$scope.$apply();
 		});
