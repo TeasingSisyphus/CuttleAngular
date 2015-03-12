@@ -72,6 +72,8 @@ module.exports = {
 						playerLimit: newDisplay.playerLimit
 					});
 
+					var tempDeck = [];
+
 					//This is causing extremely POOR PERFORMANCE
 					for (suit = 0; suit <= 3; suit++) {
 						for (rank = 1; rank <= 13; rank++) {
@@ -89,12 +91,40 @@ module.exports = {
 									if (cardError || !card) {
 										console.log("Card not created for game " + newGame.id);
 									} else {
-										newGame.deck.add(card.id);
-										newGame.save();
+										//Push new card to tempDeck. Cards from tempDeck will be pushed to foundGame.deck
+										//in a random order
+										console.log("Logging card: ");
+										tempDeck.push(card);
+										console.log(card);
+
+
+										//newGame.deck.add(card.id);
+										//newGame.save();
 									}
-								})
+
+
+								});
 						}
 					} //End of for loops
+
+					//THIS IS EXECUTING BEFORE THE FOR LOOPS
+					console.log("\nLogging tempDeck");
+					console.log(tempDeck);
+					//Add cards to foundGame.deck in random order
+					var min = 0;
+					var max = 52;
+					while (tempDeck.length) {
+						var random = Math.floor((Math.random() * ((max + 1) - min)) + min);
+
+						//THIS CODE WOULD ADD A RANDOM CARD TO THE newGame.deck, BUT
+						//IT CAUSES A CRASH, BECAUSE tempDeck ISN'T POPULATED AT THE 
+						//TIME OF EXECUTION
+
+						//newGame.deck.add(tempDeck[random].id);
+						//newGame.save();
+						tempDeck.splice(random, 1);
+
+					}
 				});
 
 			}
@@ -244,6 +274,28 @@ module.exports = {
 						p0Hand: p0.hand,
 						p1Hand: p1.hand
 					});
+				});
+		}
+	},
+
+	shuffle: function(req, res) {
+		if (req.isSocket && req.body.hasOwnProperty('id')) {
+			console.log("\nShuffle requested for game " + req.body.id);
+
+			Game.findOne(req.body.id).populate('players').populate('deck').exec(
+				function(err, foundGame) {
+					if (err || !foundGame) {
+						console.log("Game " + req.body.id + " not found for shuffle");
+					} else {
+						var temp = foundGame.deck.splice(0, 1)[0];
+						console.log(temp);
+						foundGame.save(function() {
+							foundGame.deck.add(temp.id);
+							//foundGame.save();
+						});
+
+
+					}
 				});
 		}
 	},

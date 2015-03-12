@@ -173,6 +173,15 @@
 				});
 		};
 
+		this.shuffle = function() {
+			socket.get('/game/shuffle', {
+					id: $scope.game.id
+				},
+				function(res) {
+					console.log(res);
+				});
+		};
+
 		socket.on('game', function(obj) {
 			console.log('\nGame event fired');
 			switch (obj.verb) {
