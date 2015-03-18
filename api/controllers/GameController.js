@@ -15,6 +15,31 @@ var PlayerTemp = function() {
 	this.field = [];
 }
 
+////////////////////////
+//Function Definitions//
+////////////////////////
+
+//Sort a deck according to the index attributes of its cards
+//Makes no change to deck, but returns a sorted deck array
+var sortDeck = function(deck) {
+	var tempDeck = [];
+
+	for (i=0; i<deck.length; i++) {
+		//If the index of the card is less than tempDeck.lengh, 
+		//put it in its place in tempDeck
+		if (deck[i].index <= tempDeck.length) {
+			tempDeck[deck[i].index] = deck[i];
+		//Otherwise, put it at the end of tempdeck
+		} else {
+			tempDeck[tempDeck.length] = deck[i];
+		}
+	}
+
+	return tempDeck;
+};
+
+
+
 module.exports = {
 	//This action subscribes a socket to the Game class room, then
 	//responds with an array of partial Game objects
@@ -218,16 +243,23 @@ module.exports = {
 					var p0 = new PlayerTemp();
 					var p1 = new PlayerTemp();
 
+					//TESTING SORTDECK
+					console.log('\nSorting deck:');
+					var sortedDeck = sortDeck(foundGame.deck);
+
 					//Deal 1 extra card to player 0
-					foundGame.players[0].hand.add(foundGame.deck[0].id);
-					p0.hand.push(foundGame.deck.splice(0, 1)[0]);
+					foundGame.players[0].hand.add(sortedDeck[0].id);
+					foundGame.deck.remove(sortedDeck[0].id);
+					p0.hand.push(sortedDeck.shift());
 					for (i = 1; i <= 5; i++) {
-						//console.log(foundGame.deck[0]);
-						foundGame.players[1].hand.add(foundGame.deck[0].id);
-						p1.hand.push(foundGame.deck.splice(0, 1)[0]);
-						//console.log(foundGame.deck[0]);
-						foundGame.players[0].hand.add(foundGame.deck[0].id);
-						p0.hand.push(foundGame.deck.splice(0, 1)[0]);
+
+						foundGame.players[1].hand.add(sortedDeck[0].id);
+						foundGame.deck.remove(sortedDeck[0].id);
+						p1.hand.push(sortedDeck.shift());
+
+						foundGame.players[0].hand.add(sortedDeck[0].id);
+						foundGame.deck.remove(sortedDeck[0].id);
+						p0.hand.push(sortedDeck.shift());
 					}
 					foundGame.save();
 					foundGame.players[0].save();
