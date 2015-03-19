@@ -6,6 +6,8 @@ a [Sails](http://sailsjs.org) application
 
 PREVIOUS:
 	-Refactored deal action to use synthetic index for cards
+		-Deal action now publishes its update with a deck attribute (sortDeck), used instead of game.deck
+		-Now properly updates index of cards upon moving them
 		-app will NO LONGER USE LITERAL INDEX OF CARDS WITHIN THEIR RESPECTIVE COLLECTIONS
 	-Front end now displays your cards only (displays card back for opponent's cards)
 	-Front end now updates GameController when Game event fires through socket
@@ -29,3 +31,5 @@ NEXT:
 BUGS:
 	-PLAYER NUMBER
 		-If two players join in rapid (not that rapid) succession, server will consider both players to be player 0
+	-HOMEPAGE GAMEDISPLAY
+		-The first tab to load the homepage occasionally doesn't get updated when games are created (including its own creations)

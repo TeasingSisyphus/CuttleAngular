@@ -19,23 +19,23 @@ var PlayerTemp = function() {
 //Function Definitions//
 ////////////////////////
 
-//Sort a deck according to the index attributes of its cards
-//Makes no change to deck, but returns a sorted deck array
-var sortDeck = function(deck) {
-	var tempDeck = [];
+//Sort a collection of cards according to the index attributes of its cards
+//Makes no change to original list, but returns a sorted array
+var sortCards = function(cards) {
+	var sorted = [];
 
-	for (i=0; i<deck.length; i++) {
-		//If the index of the card is less than tempDeck.lengh, 
-		//put it in its place in tempDeck
-		if (deck[i].index <= tempDeck.length) {
-			tempDeck[deck[i].index] = deck[i];
+	for (i=0; i<cards.length; i++) {
+		//If the index of the card is less than sorted.lengh, 
+		//put it in its place in sorted
+		if (cards[i].index <= sorted.length) {
+			sorted[cards[i].index] = cards[i];
 		//Otherwise, put it at the end of tempdeck
 		} else {
-			tempDeck[tempDeck.length] = deck[i];
+			sorted[sorted.length] = cards[i];
 		}
 	}
 
-	return tempDeck;
+	return sorted;
 };
 
 
@@ -106,9 +106,10 @@ module.exports = {
 							Card.create({
 								suit: suit,
 								rank: rank,
-								index: 13 * suit + rank,
 								img: path,
 								alt: txt,
+								index: 13 * suit + rank - 1,
+								collectionIndex: 13 * suit + rank - 1
 							}).exec(
 								function(cardError, card) {
 									if (cardError || !card) {
@@ -141,8 +142,6 @@ module.exports = {
 						res.send(404);
 					} else if (foundGame.players.length < foundGame.playerLimit && foundGame.status === true) {
 
-						//console.log("\nlogging game");
-						//console.log(foundGame);
 
 						//Check if this player is first to join game
 						var playerNum = (foundGame.players.length);
@@ -243,30 +242,40 @@ module.exports = {
 					var p0 = new PlayerTemp();
 					var p1 = new PlayerTemp();
 
-					//TESTING SORTDECK
+					//Sort deck
 					console.log('\nSorting deck:');
-					var sortedDeck = sortDeck(foundGame.deck);
+					var sortDeck = sortCards(foundGame.deck);
 
 					//Deal 1 extra card to player 0
-					foundGame.players[0].hand.add(sortedDeck[0].id);
-					foundGame.deck.remove(sortedDeck[0].id);
-					p0.hand.push(sortedDeck.shift());
+
+					//Add card to player's hand
+					foundGame.players[0].hand.add(sortDeck[0].id);
+					//Change index of card
+					sortDeck[0].index = 0;
+					sortDeck[0].save();
+					//Remove card from foundGame.deck
+					foundGame.deck.remove(sortDeck[0].id);
+					//Move card from sortDeck into playerTemp hand
+					p0.hand.push(sortDeck.shift());
+
+
 					for (i = 1; i <= 5; i++) {
 
-						foundGame.players[1].hand.add(sortedDeck[0].id);
-						foundGame.deck.remove(sortedDeck[0].id);
-						p1.hand.push(sortedDeck.shift());
+						foundGame.players[1].hand.add(sortDeck[0].id);
+						foundGame.deck.remove(sortDeck[0].id);
+						sortDeck[0].index = p1.hand.length;
+						p1.hand.push(sortDeck.shift());
 
-						foundGame.players[0].hand.add(sortedDeck[0].id);
-						foundGame.deck.remove(sortedDeck[0].id);
-						p0.hand.push(sortedDeck.shift());
+						foundGame.players[0].hand.add(sortDeck[0].id);
+						foundGame.deck.remove(sortDeck[0].id);
+						sortDeck[0].index = p0.hand.length;
+						p0.hand.push(sortDeck.shift());
 					}
 					foundGame.save();
 					foundGame.players[0].save();
 					foundGame.players[1].save();
 
 					var players = [p0, p1];
-					console.log(players);
 
 					Game.publishUpdate(foundGame.id, {
 						game: foundGame,
@@ -274,7 +283,8 @@ module.exports = {
 						p0: p0,
 						p1: p1,
 						p0Hand: p0.hand,
-						p1Hand: p1.hand
+						p1Hand: p1.hand,
+						deck: sortDeck
 					});
 				});
 		}

@@ -180,7 +180,7 @@
 					console.log('Game was updated; logging data: ');
 					console.log(obj.data);
 					$scope.game.players = obj.data.players;
-					$scope.game.deck = obj.data.game.deck;
+					$scope.game.deck = obj.data.deck;
 					$scope.game.scrap = obj.data.game.scrap;
 
 					//Determine Player Number

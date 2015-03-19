@@ -19,11 +19,16 @@ module.exports = {
   		required: true
   	},
 
-  	//Index indicating where in a hand/field/deck/scrap the card is
+  	//Synthetic Index indicating where in a hand/field/deck/scrap the card SHOULD BE
   	index: {
   		type: 'integer'
   	},
 
+    //Literal Index indicating where in the collection the card IS
+    collectionIndex: {
+      type: 'integer'
+    },
+    
   	//Path to card image
   	img: {
   		type: 'string'
