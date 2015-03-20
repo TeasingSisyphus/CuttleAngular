@@ -25,19 +25,31 @@ var sortCards = function(cards) {
 	var sorted = [];
 
 	for (i=0; i<cards.length; i++) {
+		//console.log(i);
 		//If the index of the card is less than sorted.lengh, 
 		//put it in its place in sorted
 		if (cards[i].index <= sorted.length) {
 			sorted[cards[i].index] = cards[i];
+			//console.log(sorted[cards[i].index]);
 		//Otherwise, put it at the end of tempdeck
 		} else {
-			sorted[sorted.length] = cards[i];
+			sorted.push(cards[i]);
+			//console.log(sorted[sorted.length - 1]);
 		}
+
 	}
+	console.log("Finished sorting:");
+	console.log(sorted);
 
 	return sorted;
 };
 
+//Creates an array of integers starting @ start, ending @ stop and incrimenting by step
+var range = function(start, stop, step){
+  var a=[start], b=start;
+  while(b<stop){b+=step;a.push(b)}
+  return a;
+};
 
 
 module.exports = {
@@ -287,6 +299,46 @@ module.exports = {
 						deck: sortDeck
 					});
 				});
+		}
+	},
+
+	shuffle: function(req, res) {
+		if (req.isSocket && req.body.hasOwnProperty('id')) {
+			console.log("\nShuffle requested for game: " + req.body.id);
+
+			Game.findOne(req.body.id).populate('deck').populate('scrap').populate('players').exec(
+			function(err, foundGame) {
+				if (err || !foundGame) {
+					console.log("Game " + req.body.id + " not found for shuffle");
+					res.send(404);
+				} else {
+
+
+					var sortDeck = sortCards(foundGame.deck);
+					var indices  = range(0, sortDeck.length - 1, 1);
+					var random = 0;
+
+					console.log(sortDeck);
+
+					for (i = 0; i < sortDeck.length; i++) {
+						random = Math.floor((Math.random() * ((indices.length) - 0)) + 0);
+						console.log(i + "th Random index: " + indices[random]);
+
+						sortDeck[i].index = indices.splice(random, 1)[0];
+						sortDeck[i].save();
+					}
+					console.log('\nsorting after shuffle');
+					//var shuffled = sortCards(sortDeck);
+
+					//console.log("\n" + sortDeck.length);
+					//console.log(shuffled.length);
+					console.log("Logging sortDeck:");
+					console.log(sortDeck);
+					//console.log("\nLogging shuffled:");
+					//console.log(shuffled);
+					 //Game.publishUpdate(foundGame.id, {deck : shuffled});
+				}
+			});
 		}
 	},
 

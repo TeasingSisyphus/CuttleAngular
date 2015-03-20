@@ -173,15 +173,30 @@
 				});
 		};
 
+		this.shuffle = function() {
+			socket.get('/game/shuffle', {
+				id: $scope.game.id
+			},
+			function(res) {
+				console.log(res);
+			});
+		};
+
 		socket.on('game', function(obj) {
 			console.log('\nGame event fired');
 			switch (obj.verb) {
 				case 'updated':
 					console.log('Game was updated; logging data: ');
 					console.log(obj.data);
-					$scope.game.players = obj.data.players;
-					$scope.game.deck = obj.data.deck;
-					$scope.game.scrap = obj.data.game.scrap;
+					if (obj.data.hasOwnProperty('players') ){
+						$scope.game.players = obj.data.players;
+					}
+					if(obj.data.hasOwnProperty('deck') ) {
+						$scope.game.deck = obj.data.deck;
+					}
+					if (obj.data.hasOwnProperty('scrap') ){
+						$scope.game.scrap = obj.data.game.scrap;
+					}
 
 					//Determine Player Number
 			}
