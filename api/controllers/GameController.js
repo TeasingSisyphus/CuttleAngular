@@ -24,22 +24,11 @@ var PlayerTemp = function() {
 var sortCards = function(cards) {
 	var sorted = [];
 
-	for (i=0; i<cards.length; i++) {
-		//console.log(i);
-		//If the index of the card is less than sorted.lengh, 
-		//put it in its place in sorted
-		if (cards[i].index <= sorted.length) {
-			sorted[cards[i].index] = cards[i];
-			//console.log(sorted[cards[i].index]);
-		//Otherwise, put it at the end of tempdeck
-		} else {
-			sorted.push(cards[i]);
-			//console.log(sorted[sorted.length - 1]);
-		}
-
+	for (i = 0; i < cards.length; i++) {
+	 sorted.push(cards[i]);
 	}
-	console.log("Finished sorting:");
-	console.log(sorted);
+
+	sorted.sort( function(a,b){return a.index - b.index} );
 
 	return sorted;
 };
@@ -327,16 +316,19 @@ module.exports = {
 						sortDeck[i].index = indices.splice(random, 1)[0];
 						sortDeck[i].save();
 					}
-					console.log('\nsorting after shuffle');
-					//var shuffled = sortCards(sortDeck);
+
+					console.log("\nsortDeck length: " + sortDeck.length);
+					var shuffled = sortCards(sortDeck);
+					console.log("shuffled length: " + shuffled.length);
 
 					//console.log("\n" + sortDeck.length);
 					//console.log(shuffled.length);
-					console.log("Logging sortDeck:");
+					console.log("\nLogging sortDeck:");
 					console.log(sortDeck);
+					console.log('\n');
 					//console.log("\nLogging shuffled:");
 					//console.log(shuffled);
-					 //Game.publishUpdate(foundGame.id, {deck : shuffled});
+					Game.publishUpdate(foundGame.id, {deck : shuffled});
 				}
 			});
 		}

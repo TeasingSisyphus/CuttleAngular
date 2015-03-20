@@ -5,6 +5,7 @@ a [Sails](http://sailsjs.org) application
 
 
 PREVIOUS:
+	-Enabled shuffling
 	-Refactored deal action to use synthetic index for cards
 		-Deal action now publishes its update with a deck attribute (sortDeck), used instead of game.deck
 		-Now properly updates index of cards upon moving them
@@ -21,12 +22,10 @@ PREVIOUS:
 	-Client can request to be subscribed to a game
 
 NEXT:
-	-Enable shuffling
-		-Change the index attributes of each card
-	-Fix playerNum bug
-	-Clean up Socket organization in app.js in GameController
-
 	-Enable drawing a card
+	-Enable playing a card to the field
+	-Fix playerNum bug
+
 
 BUGS:
 	-PLAYER NUMBER
