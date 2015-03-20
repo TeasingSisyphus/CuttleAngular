@@ -324,22 +324,105 @@ module.exports = {
 						sortDeck[i].save();
 					}
 
-					console.log("\nsortDeck length: " + sortDeck.length);
 					var shuffled = sortCards(sortDeck);
-					console.log("shuffled length: " + shuffled.length);
 
-					//console.log("\n" + sortDeck.length);
-					//console.log(shuffled.length);
-					console.log("\nLogging sortDeck:");
-					console.log(sortDeck);
-					console.log('\n');
-					//console.log("\nLogging shuffled:");
-					//console.log(shuffled);
 					Game.publishUpdate(foundGame.id, {deck : shuffled});
 				}
 			});
 		}
 	},
+
+
+	draw: function(req, res) {
+		if (req.isSocket && req.body.hasOwnProperty('id') ) {
+			console.log('\nDraw requested for game: ' + req.body.id);
+
+			Game.findOne(req.body.id).populate('deck').populate('players').exec(
+			function(err, foundGame) {
+				if (err || !foundGame) {
+					console.log("Game " + req.body.id + " not found for deal");
+					res.send(404);
+				} else if (foundGame.players.length === foundGame.playerLimit) {
+					console.log("Player id's: " + foundGame.players[0].id + " and " + foundGame.players[1].id);
+					Player.find([foundGame.players[0].id, foundGame.players[1].id]).populateAll().exec(
+						function(e, pop_players) {
+							if(e || ! pop_players) {
+								console.log("Players not found in game: " + foundGame.id + " for draw");
+								res.send(404);
+							} else {
+								
+								console.log('Found players:');
+								console.log(pop_players);
+
+								var playerSort = sortPlayers(pop_players);
+								console.log('\nSorted Players: ');
+								console.log(playerSort);
+
+								var pNum = null;
+
+								if (req.socket.id === playerSort[0].socketId) {
+									pNum = 0;
+								} else if (req.socket.id === playerSort[1].socketId) {
+									pNum = 1;
+								} else {
+									console.log('Requesting socket: ' + req.socket.id + " is not in game: " + foundGame.id);
+									res.send(404);
+								}
+
+								if ( (pNum === 0 || pNum === 1) && (pNum === foundGame.turn % 2 )  && pop_players[pNum].hand.length < foundGame.handLimit) {
+
+									var deckSort = sortCards(foundGame.deck);
+
+									var handSort = sortCards(playerSort[pNum].hand);
+									handSort.push( deckSort.shift() );
+									foundGame.deck.remove(handSort[handSort.length - 1].id);
+									foundGame.turn++;
+									foundGame.save();
+									handSort[handSort.length - 1].index = handSort.length - 1;
+									handSort[handSort.length -1].save();
+									playerSort[pNum].hand.add(handSort[handSort.length -1].id);
+									playerSort[pNum].save();
+
+									var p0 = new PlayerTemp;
+									var p1 = new PlayerTemp;
+
+									// p0.hand  = handSort;
+									p0.field = playerSort[0].field;
+									// p1.hand  = playerSort[1].hand;
+									p1.field = playerSort[1].field;
+
+									switch (pNum) {
+										case 0:
+											p0.hand = handSort;
+											p1.hand = playerSort[1].hand;
+											break;
+										case 1:
+											p1.hand = handSort;
+											p0.hand = playerSort[0].hand;
+											break;
+									}
+
+									var players = [p0, p1];
+
+									Game.publishUpdate(foundGame.id, {deck: deckSort, players: players});
+
+
+								} else {
+									console.log("Not a legal move");
+									res.send("Not a legal move!");
+								}
+							}
+						});
+
+				} else {
+					console.log("Not enough players!");
+					res.send("Not enough players!");
+				}
+			}); 
+
+			
+		}
+	},	
 
 	updateAll: function(req, res) {
 		console.log('Publishing All updates');

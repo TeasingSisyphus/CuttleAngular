@@ -51,6 +51,7 @@ module.exports.routes = {
   '/game/game_subscribe': 'GameController.gameSubscribe',
   '/game/update_all'    : 'GameController.updateAll',
   '/game/deal'          : 'GameController.deal',    
-  '/game/shuffle'       : 'GameController.shuffle'
+  '/game/shuffle'       : 'GameController.shuffle',
+  '/game/draw'          : 'GameController.draw'
 
 };

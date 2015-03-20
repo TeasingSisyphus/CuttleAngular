@@ -5,6 +5,7 @@ a [Sails](http://sailsjs.org) application
 
 
 PREVIOUS:
+	-Enabled drawing a card on your turn
 	-Refactored Dealing action to leverage 'sortPlayers', to divorce the player's index in the game.players collection from their playerNumber 
 		-This allows an easy switching of p0 and p1 at game's end
 	-Enabled shuffling
@@ -24,7 +25,6 @@ PREVIOUS:
 	-Client can request to be subscribed to a game
 
 NEXT:
-	-Enable drawing a card
 	-Enable playing a card to the field
 	-Fix playerNum bug
 

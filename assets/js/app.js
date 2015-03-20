@@ -163,8 +163,12 @@
 		});
 
 
+		//////////////////////
+		//Controller Methods//
+		//////////////////////
 
 		this.deal = function() {
+			console.log('Requesting deal');
 			socket.get('/game/deal', {
 					id: $scope.game.id
 				},
@@ -174,7 +178,18 @@
 		};
 
 		this.shuffle = function() {
+			console.log('Requesting shuffle');
 			socket.get('/game/shuffle', {
+				id: $scope.game.id
+			},
+			function(res) {
+				console.log(res);
+			});
+		};
+
+		this.draw = function() {
+			console.log('Requesting draw');
+			socket.get('/game/draw', {
 				id: $scope.game.id
 			},
 			function(res) {
@@ -198,7 +213,6 @@
 						$scope.game.scrap = obj.data.game.scrap;
 					}
 
-					//Determine Player Number
 			}
 			$scope.$apply();
 		});

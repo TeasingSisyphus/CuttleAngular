@@ -38,7 +38,7 @@ module.exports = {
 
     turn: {
       type: 'integer',
-      defaultsTo: 0
+      defaultsTo: 1
     },
 
     //Integer representing how many players wish to play again

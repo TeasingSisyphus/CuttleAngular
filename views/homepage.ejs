@@ -39,10 +39,9 @@
         <div ng-controller='gameController as game' ng-show='homepage.gameView'>
             <div> Game Name: {{game.name}}      Game Id: {{game.id}} 
             <p> {{3 + 7}} </p>
-            <button ng-click="game.drawP0()">P0 Draw</button>
-            <button ng-click="game.drawP1()">P1 Draw</button>
-            <button ng-click="game.deal()">Deal Hands</button>
             <button ng-click="game.shuffle()">Shuffle Deck</button>
+            <button ng-click="game.deal()">Deal Hands</button>
+            <button ng-click="game.draw()">Draw</button>
 
             <div id="op_wrap">
                 <div class='hand_wrap'>
