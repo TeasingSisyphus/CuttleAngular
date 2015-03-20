@@ -24,7 +24,7 @@ var PlayerTemp = function() {
 var sortCards = function(cards) {
 	var sorted = [];
 
-	for (i = 0; i < cards.length; i++) {
+	for (var i = 0; i < cards.length; i++) {
 	 sorted.push(cards[i]);
 	}
 
@@ -33,6 +33,17 @@ var sortCards = function(cards) {
 	return sorted;
 };
 
+var sortPlayers = function(players) {
+	var sorted = [];
+
+	for (var i = 0; i < players.length; i++) {
+		sorted.push(players[i]);
+	}
+
+	sorted.sort( function(a,b){return a.playerNumber - b.playerNumber} );
+
+	return sorted;
+};
 //Creates an array of integers starting @ start, ending @ stop and incrimenting by step
 var range = function(start, stop, step){
   var a=[start], b=start;
@@ -170,7 +181,7 @@ module.exports = {
 								//Prevent other users from joining the game, then
 								//instantiate the deck
 								if (foundGame.players.length === foundGame.playerLimit - 1) {
-									console.log("Game is now full. Instantiating deck and changing game status.");
+									console.log("Game is now full. Changing game status.");
 									foundGame.status = false;
 
 									//Instantiate the deck
@@ -244,47 +255,43 @@ module.exports = {
 					var p1 = new PlayerTemp();
 
 					//Sort deck
-					console.log('\nSorting deck:');
 					var sortDeck = sortCards(foundGame.deck);
+					//Sort Players
+					var playerSort = sortPlayers(foundGame.players);
+
 
 					//Deal 1 extra card to player 0
-
-					//Add card to player's hand
-					foundGame.players[0].hand.add(sortDeck[0].id);
-					//Change index of card
-					sortDeck[0].index = 0;
+					playerSort[0].hand.add(sortDeck[0].id); 		//Add card to player's hand
+					
+					sortDeck[0].index = 0; 							//Change index of card
 					sortDeck[0].save();
-					//Remove card from foundGame.deck
-					foundGame.deck.remove(sortDeck[0].id);
-					//Move card from sortDeck into playerTemp hand
-					p0.hand.push(sortDeck.shift());
+					
+					foundGame.deck.remove(sortDeck[0].id);			//Remove card from foundGame.deck
+					
+					p0.hand.push(sortDeck.shift());					//Move card from sortDeck into playerTemp hand
 
 
 					for (i = 1; i <= 5; i++) {
 
-						foundGame.players[1].hand.add(sortDeck[0].id);
+						playerSort[1].hand.add(sortDeck[0].id);
 						foundGame.deck.remove(sortDeck[0].id);
 						sortDeck[0].index = p1.hand.length;
 						p1.hand.push(sortDeck.shift());
 
-						foundGame.players[0].hand.add(sortDeck[0].id);
+						playerSort[0].hand.add(sortDeck[0].id);
 						foundGame.deck.remove(sortDeck[0].id);
 						sortDeck[0].index = p0.hand.length;
 						p0.hand.push(sortDeck.shift());
 					}
+					//Save changes to database
 					foundGame.save();
-					foundGame.players[0].save();
-					foundGame.players[1].save();
+					playerSort[0].save();
+					playerSort[1].save();
 
 					var players = [p0, p1];
 
 					Game.publishUpdate(foundGame.id, {
-						game: foundGame,
 						players: players,
-						p0: p0,
-						p1: p1,
-						p0Hand: p0.hand,
-						p1Hand: p1.hand,
 						deck: sortDeck
 					});
 				});

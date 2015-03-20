@@ -5,6 +5,8 @@ a [Sails](http://sailsjs.org) application
 
 
 PREVIOUS:
+	-Refactored Dealing action to leverage 'sortPlayers', to divorce the player's index in the game.players collection from their playerNumber 
+		-This allows an easy switching of p0 and p1 at game's end
 	-Enabled shuffling
 	-Refactored deal action to use synthetic index for cards
 		-Deal action now publishes its update with a deck attribute (sortDeck), used instead of game.deck
