@@ -143,6 +143,9 @@
 		this.name = '';
 		this.turn = 0;
 		this.playerNum = null;
+		this.selImg = '';
+		this.selIndex = null;
+		this.selected = false;
 
 		/////////////////////
 		//Root Scope Events//
@@ -195,6 +198,39 @@
 			function(res) {
 				console.log(res);
 			});
+		};
+
+		//Selects/deselects one of your cards and displays it in the middle of the screen
+		this.sel = function(index) {
+			if ($scope.game.selIndex !== index) {
+			console.log("\nSelecting card " + index + " from hand");
+	
+				$scope.game.selImg = $scope.game.players[$scope.game.playerNum].hand[index].img;
+				$scope.game.selIndex = index;
+				$scope.game.selected = true;
+			} else {
+				console.log('\nDeselcting');
+				$scope.game.selImg   = '';
+				$scope.game.selIndex = null;
+				$scope.game.selected = false;
+
+			}
+		};
+
+		//Requests playing a card specified by game.selIndex to your field
+		this.toField = function() {
+			if ($scope.game.selected) {
+				console.log("\nCard " + $scope.game.selIndex + " is selcted; requesting to move to field");
+				socket.get('/game/toField', {
+					id   : $scope.game.id,
+					index: $scope.game.selIndex
+				},
+				function(res) {
+					console.log(res);
+					$scope.selIndex = null;
+					$scope.selected = false;
+				});
+			}
 		};
 
 		socket.on('game', function(obj) {

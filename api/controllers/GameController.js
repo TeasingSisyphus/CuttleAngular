@@ -314,11 +314,10 @@ module.exports = {
 					var indices  = range(0, sortDeck.length - 1, 1);
 					var random = 0;
 
-					console.log(sortDeck);
 
 					for (i = 0; i < sortDeck.length; i++) {
 						random = Math.floor((Math.random() * ((indices.length) - 0)) + 0);
-						console.log(i + "th Random index: " + indices[random]);
+						//console.log(i + "th Random index: " + indices[random]);
 
 						sortDeck[i].index = indices.splice(random, 1)[0];
 						sortDeck[i].save();
@@ -343,20 +342,15 @@ module.exports = {
 					console.log("Game " + req.body.id + " not found for deal");
 					res.send(404);
 				} else if (foundGame.players.length === foundGame.playerLimit) {
-					console.log("Player id's: " + foundGame.players[0].id + " and " + foundGame.players[1].id);
+
 					Player.find([foundGame.players[0].id, foundGame.players[1].id]).populateAll().exec(
 						function(e, pop_players) {
 							if(e || ! pop_players) {
 								console.log("Players not found in game: " + foundGame.id + " for draw");
 								res.send(404);
-							} else {
-								
-								console.log('Found players:');
-								console.log(pop_players);
+							} else {	
 
 								var playerSort = sortPlayers(pop_players);
-								console.log('\nSorted Players: ');
-								console.log(playerSort);
 
 								var pNum = null;
 
@@ -371,36 +365,48 @@ module.exports = {
 
 								if ( (pNum === 0 || pNum === 1) && (pNum === foundGame.turn % 2 )  && pop_players[pNum].hand.length < foundGame.handLimit) {
 
-									var deckSort = sortCards(foundGame.deck);
+									var deckSort   = sortCards(foundGame.deck);
 
-									var handSort = sortCards(playerSort[pNum].hand);
-									handSort.push( deckSort.shift() );
-									foundGame.deck.remove(handSort[handSort.length - 1].id);
+									var handSort1  = sortCards(playerSort[0].hand);
+									var fieldSort1 = sortCards(playerSort[0].field);
+									var handSort2  = sortCards(playerSort[1].hand);
+									var fieldSort2 = sortCards(playerSort[1].field);
+
+
+									// var handSort = sortCards(playerSort[pNum].hand);
+									// handSort.push( deckSort.shift() );
+									playerSort[pNum].hand.add(deckSort[0].id);
+									playerSort[pNum].save();
+
+									foundGame.deck.remove(deckSort[0].id);
 									foundGame.turn++;
 									foundGame.save();
-									handSort[handSort.length - 1].index = handSort.length - 1;
-									handSort[handSort.length -1].save();
-									playerSort[pNum].hand.add(handSort[handSort.length -1].id);
-									playerSort[pNum].save();
+
+
+									// handSort[handSort.length - 1].index = handSort.length - 1;
+									// handSort[handSort.length -1].save();
 
 									var p0 = new PlayerTemp;
 									var p1 = new PlayerTemp;
 
-									// p0.hand  = handSort;
-									p0.field = playerSort[0].field;
-									// p1.hand  = playerSort[1].hand;
-									p1.field = playerSort[1].field;
 
 									switch (pNum) {
 										case 0:
-											p0.hand = handSort;
-											p1.hand = playerSort[1].hand;
+											handSort1.push( deckSort.shift() );
+											handSort1[handSort1.length - 1].index = handSort1.length - 1;
+											handSort1[handSort1.length - 1].save();
 											break;
 										case 1:
-											p1.hand = handSort;
-											p0.hand = playerSort[0].hand;
+											handSort2.push( deckSort.shift() );
+											handSort2[handSort2.length - 1].index = handSort2.length - 1;
+											handSort2[handSort2.length - 1].save();
 											break;
 									}
+
+									p0.hand  = handSort1;
+									p0.field = fieldSort1;
+									p1.hand  = handSort2;
+									p1.field = fieldSort2;
 
 									var players = [p0, p1];
 
@@ -423,6 +429,111 @@ module.exports = {
 			
 		}
 	},	
+
+	toField: function(req, res) {
+
+		console.log(req.body);
+		if ( req.isSocket && req.body.hasOwnProperty('id') && req.body.hasOwnProperty('index') ) {
+			console.log('\nField requested for game: ' + req.body.id);
+			Game.findOne(req.body.id).populate('players').exec(
+			function(err, foundGame) {
+				if (err || !foundGame) {
+					console.log("Game " + req.body.id + " not found for field");
+					res.send(404);
+				} else if (foundGame.players.length === foundGame.playerLimit) {
+					Player.find([foundGame.players[0].id, foundGame.players[1].id]).populateAll().exec(
+						function(e, pop_players) {
+							if(e || !pop_players) {
+								console.log("Players not found in game: " + foundGame.id + " for field");
+								res.send(404);
+							} else {	
+
+								var playerSort = sortPlayers(pop_players);
+								var pNum = null;
+
+								if 			(req.socket.id === playerSort[0].socketId) {
+									pNum = 0;
+								} else if 	(req.socket.id === playerSort[1].socketId) {
+
+									pNum = 1;
+
+								} else {
+
+									console.log('Requesting socket: ' + req.socket.id + " is not in game: " + foundGame.id);
+									res.send(404);
+
+								}
+								if ( (pNum === 0 || pNum === 1) && (pNum === foundGame.turn % 2 ) && (playerSort[pNum].hand[req.body.index].rank !== 11) ) {
+									console.log("\nField move is legal for game " + foundGame.id);
+								
+									var p0 = new PlayerTemp;
+									var p1 = new PlayerTemp;
+
+									var handSort1  = sortCards(playerSort[0].hand);
+									var fieldSort1 = sortCards(playerSort[0].field);
+
+									var handSort2  = sortCards(playerSort[1].hand);
+									var fieldSort2 = sortCards(playerSort[1].field);
+
+									//Server Changes
+									playerSort[pNum].field.add(playerSort[pNum].hand[req.body.index].id);
+									playerSort[pNum].hand.remove(playerSort[pNum].hand[req.body.index].id);
+									playerSort[pNum].save();
+
+									foundGame.turn++;
+									foundGame.save();
+
+									//Local Data for Client Update
+									if (pNum === 0) {
+										fieldSort1.push( handSort1.splice(req.body.index, 1)[0] );
+										console.log("Size of fieldSort after push: " + fieldSort1.length);
+										fieldSort1[fieldSort1.length - 1].index = fieldSort1.length - 1;
+										console.log("Logging fieldSort");
+										console.log(fieldSort1.length);
+										console.log('Logging card just added to field: ');
+										console.log(fieldSort1[fieldSort1.length - 1]);
+										fieldSort1[fieldSort1.length - 1].save();
+									} else if (pNum === 1) {
+										fieldSort2.push( handSort2.splice(req.body.index, 1)[0] );
+										console.log("Size of fieldSort after push: " + fieldSort2.length);
+
+										fieldSort2[fieldSort2.length - 1].index = fieldSort2.length - 1;
+										console.log("Logging fieldSort");
+										console.log(fieldSort1);
+
+										console.log('\nLogging card just added to field: ');
+										console.log(fieldSort2[fieldSort2.length - 1]);
+										fieldSort2[fieldSort2.length -1].save();
+									}
+
+									p0.hand  = handSort1;
+									p0.field = fieldSort1;
+									p1.hand  = handSort2;
+									p1.field = fieldSort2;
+
+									var players = [p0, p1];
+
+									Game.publishUpdate(foundGame.id, {players: players});
+									res.send('Card moved to field');
+
+								} else {
+									console.log("Not a legal move");
+									res.send("Not a legal move!");
+								}
+							}
+						});
+
+				} else {
+					console.log("Not enough players!");
+					res.send("Not enough players!");
+				}
+			}); 
+
+			
+		}
+	},	
+
+
 
 	updateAll: function(req, res) {
 		console.log('Publishing All updates');
