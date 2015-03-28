@@ -325,7 +325,6 @@ module.exports = {
 
 						for (i = 0; i < sortDeck.length; i++) {
 							random = Math.floor((Math.random() * ((indices.length) - 0)) + 0);
-							//console.log(i + "th Random index: " + indices[random]);
 
 							sortDeck[i].index = indices.splice(random, 1)[0];
 							sortDeck[i].save();
@@ -407,9 +406,7 @@ module.exports = {
 														card.save();
 													});
 												handSort1[handSort1.length - 1].index = handSort1.length - 1;
-												// console.log(handSort1);
-												// console.log(handSort1[handSort1.length - 1])
-												// handSort1[handSort1.length - 1].save();
+
 												break;
 											case 1:
 												handSort2.push(deckSort.shift());
@@ -423,9 +420,7 @@ module.exports = {
 
 													});
 												handSort2[handSort2.length - 1].index = handSort2.length - 1;
-												// console.log(handSort2);
-												// console.log(handSort2[handSort2.length - 1]);
-												// handSort2[handSort2.length - 1].save();
+
 												break;
 										}
 
