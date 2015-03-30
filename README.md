@@ -5,6 +5,7 @@ a [Sails](http://sailsjs.org) application
 
 
 PREVIOUS:
+	-Enabled victory
 	-Enabled playing a card to the field
 	-Enabled drawing a card on your turn
 	-Refactored Dealing action to leverage 'sortPlayers', to divorce the player's index in the game.players collection from their playerNumber 
@@ -26,10 +27,10 @@ PREVIOUS:
 	-Client can request to be subscribed to a game
 
 NEXT:
-	-Enable Scuttling
-	-Enable Victory
+	-Enable
 	-Clean up DOM
 		-Create space for selector and fields even when no cards are present
+			-Made space for selector by using cardback image when nothing is selected
 		-Properly Delsect by replacing image with a blank card
 	-Fix playerNum bug
 		-Change timing of Card creation loop and display a loading screen while users wait

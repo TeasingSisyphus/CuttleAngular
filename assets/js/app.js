@@ -183,34 +183,34 @@
 		this.shuffle = function() {
 			console.log('Requesting shuffle');
 			socket.get('/game/shuffle', {
-				id: $scope.game.id
-			},
-			function(res) {
-				console.log(res);
-			});
+					id: $scope.game.id
+				},
+				function(res) {
+					console.log(res);
+				});
 		};
 
 		this.draw = function() {
 			console.log('Requesting draw');
 			socket.get('/game/draw', {
-				id: $scope.game.id
-			},
-			function(res) {
-				console.log(res);
-			});
+					id: $scope.game.id
+				},
+				function(res) {
+					console.log(res);
+				});
 		};
 
 		//Selects/deselects one of your cards and displays it in the middle of the screen
 		this.sel = function(index) {
 			if ($scope.game.selIndex !== index) {
-			console.log("\nSelecting card " + index + " from hand");
-	
+				console.log("\nSelecting card " + index + " from hand");
+
 				$scope.game.selImg = $scope.game.players[$scope.game.playerNum].hand[index].img;
 				$scope.game.selIndex = index;
 				$scope.game.selected = true;
 			} else {
 				console.log('\nDeselcting');
-				$scope.game.selImg   = 'images/word-ace-card-back.jpg';
+				$scope.game.selImg = 'images/word-ace-card-back.jpg';
 				$scope.game.selIndex = null;
 				$scope.game.selected = false;
 
@@ -222,17 +222,17 @@
 			if ($scope.game.selected) {
 				console.log("\nCard " + $scope.game.selIndex + " is selcted; requesting to move to field");
 				socket.get('/game/toField', {
-					id   : $scope.game.id,
-					index: $scope.game.selIndex
-				},
-				function(res) {
-					console.log(res);
-					console.log("Deselecting after toField");
-					$scope.game.selIndex = null;
-					$scope.game.selected = false;
-					$scope.game.selImg = 'images/word-ace-card-back.jpg';
-					$scope.$apply();
-				});
+						id: $scope.game.id,
+						index: $scope.game.selIndex
+					},
+					function(res) {
+						console.log(res);
+						console.log("Deselecting after toField");
+						$scope.game.selIndex = null;
+						$scope.game.selected = false;
+						$scope.game.selImg = 'images/word-ace-card-back.jpg';
+						$scope.$apply();
+					});
 			}
 		};
 
@@ -241,18 +241,18 @@
 			if ($scope.game.selected) {
 				console.log("\nRequesting to scuttle card " + target_index + " with card " + $scope.game.selIndex + " from hand");
 				socket.get('/game/scuttle', {
-					id     : $scope.game.id,
-					index  : $scope.game.selIndex,
-					target : target_index
-				},
-				function(res) {
-					console.log(res);
-					console.log("Deselecting after scuttle");
-					$scope.game.selIndex = null;
-					$scope.game.selected = false;
-					$scope.game.selImg = 'images/word-ace-card-back.jpg';
-					$scope.$apply();					
-				});
+						id: $scope.game.id,
+						index: $scope.game.selIndex,
+						target: target_index
+					},
+					function(res) {
+						console.log(res);
+						console.log("Deselecting after scuttle");
+						$scope.game.selIndex = null;
+						$scope.game.selected = false;
+						$scope.game.selImg = 'images/word-ace-card-back.jpg';
+						$scope.$apply();
+					});
 			}
 		};
 
@@ -260,15 +260,25 @@
 			console.log('\nGame event fired');
 			switch (obj.verb) {
 				case 'updated':
+					if (obj.data.hasOwnProperty('game')) {
+						console.log("Got a game");
+						console.log(obj.data.game);
+						console.log(obj.data.game.winner);
+						console.log((obj.data.game.winner === 0) || (obj.data.game.winner === 1));
+						if ((obj.data.game.winner === 0) || (obj.data.game.winner === 1)) {
+							alert("Player " + obj.data.game.winner + " has won!");
+						}
+
+					}
 					console.log('Game was updated; logging data: ');
 					console.log(obj.data);
-					if (obj.data.hasOwnProperty('players') ){
+					if (obj.data.hasOwnProperty('players')) {
 						$scope.game.players = obj.data.players;
 					}
-					if(obj.data.hasOwnProperty('deck') ) {
+					if (obj.data.hasOwnProperty('deck')) {
 						$scope.game.deck = obj.data.deck;
 					}
-					if (obj.data.hasOwnProperty('scrap') ){
+					if (obj.data.hasOwnProperty('scrap')) {
 						$scope.game.scrap = obj.data.scrap;
 					}
 

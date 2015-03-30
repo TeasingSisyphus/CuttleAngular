@@ -59,6 +59,103 @@ var range = function(start, stop, step) {
 	return a;
 };
 
+var winner = function(game, fields) {
+	console.log("\nChecking game " + game.id + " for a winner");
+	var p0Points = 0;
+	var p0Kings = 0;
+	var p1Points = 0;
+	var p1Kings = 0;
+
+	var tempRank = 0;
+
+	//Check points and kings for p0
+	fields[0].forEach(
+		function(card, index, field) {
+			if (card.rank === 13) {
+				p0Kings++;
+			} else if (card.rank <= 10) {
+				p0Points += card.rank;
+			}
+		});
+
+	fields[1].forEach(
+		function(card, index, fiel) {
+			if (card.rank === 13) {
+				p1Kings++;
+			} else if (card.rank <= 10) {
+				p1Points += card.rank;
+			}
+		});
+
+	console.log("Player0 has " + p0Points + " points and " + p0Kings + " Kings");
+	console.log("Player1 has " + p1Points + " points and " + p1Kings + " Kings");
+	//Check p0 for a win
+	switch (p0Kings) {
+		case 0:
+			if (p0Points >= 21) {
+				console.log("\nPlayer 0 has won with " + p0Points + " points");
+				game.winner = 0;
+			}
+			break;
+		case 1:
+			if (p0Points >= 14) {
+				console.log("\nPlayer 0 has won with " + p0Points + " points and 1 King");
+				game.winner = 0;
+			}
+			break;
+		case 2:
+			if (p0Points >= 10) {
+				console.log("\nPlayer 0 has won with " + p0Points + " points and 2 Kings");
+				game.winner = 0;
+			}
+			break;
+		case 3:
+			if (p0Points >= 7) {
+				console.log("\nPlayer 0 has won with " + p0Points + " points and 3 Kings");
+			}
+			break;
+		case 4:
+			if (p0Points >= 5) {
+				console.log("\nPlayer 0 has won with " + p0Points + " points and 4 Kings");
+			}
+	}
+
+	//Check p1 for a win
+	switch (p1Kings) {
+		case 0:
+			if (p1Points >= 21) {
+				console.log("\nPlayer 1 has won with " + p1Points + " points");
+				game.winner = 1;
+			}
+			break;
+		case 1:
+			if (p1Points >= 14) {
+				console.log("\nPlayer 1 has won with " + p1Points + " points and 1 King");
+				game.winner = 1;
+			}
+			break;
+		case 2:
+			if (p1Points >= 10) {
+				console.log("\nPlayer 1 has won with " + p1Points + " points and 2 Kings");
+				game.winner = 1;
+			}
+			break;
+		case 3:
+			if (p1Points >= 7) {
+				console.log("\nPlayer 1 has won with " + p1Points + " points and 3 Kings");
+				game.winner = 1;
+			}
+			break;
+		case 4:
+			if (p1Points >= 5) {
+				console.log("\nPlayer 1 has won with " + p1Points + " points and 4 Kings");
+				game.winner = 1;
+			}
+	}
+
+
+};
+
 
 module.exports = {
 	//This action subscribes a socket to the Game class room, then
@@ -537,8 +634,8 @@ module.exports = {
 											});
 											Card.find(decriment).exec(
 												function(teh_error, cards) {
-													console.log("\nLogging cards to have indices decrimented");
-													console.log(cards);
+													// console.log("\nLogging cards to have indices decrimented");
+													// console.log(cards);
 													cards.forEach(function(card, index, list) {
 														card.index--;
 														card.save();
@@ -572,8 +669,8 @@ module.exports = {
 											});
 											Card.find(decriment).exec(
 												function(teh_error, cards) {
-													console.log("\nLogging cards to have indices decrimented");
-													console.log(cards);
+													// console.log("\nLogging cards to have indices decrimented");
+													// console.log(cards);
 													cards.forEach(function(card, index, list) {
 														card.index--;
 														card.save();
@@ -588,8 +685,14 @@ module.exports = {
 
 										var players = [p0, p1];
 
+										winner(foundGame, [fieldSort1, fieldSort2]);
+										foundGame.save();
+										console.log(foundGame.winner);
+
+
 										Game.publishUpdate(foundGame.id, {
-											players: players
+											players: players,
+											game: foundGame
 										});
 										res.send('Card moved to field');
 
@@ -614,7 +717,7 @@ module.exports = {
 	scuttle: function(req, res) {
 
 		console.log(req.body);
-		if ( req.isSocket && req.body.hasOwnProperty('id') && req.body.hasOwnProperty('index') && req.body.hasOwnProperty('target') ) {
+		if (req.isSocket && req.body.hasOwnProperty('id') && req.body.hasOwnProperty('index') && req.body.hasOwnProperty('target')) {
 			console.log('\nScuttle requested for game: ' + req.body.id + ' with index: ' + req.body.index + " and target: " + req.body.target);
 			Game.findOne(req.body.id).populateAll().exec(
 				function(err, foundGame) {
@@ -645,7 +748,7 @@ module.exports = {
 										res.send(404);
 
 									}
-									if ( (pNum === 0 || pNum === 1) && (pNum === foundGame.turn % 2) ) {
+									if ((pNum === 0 || pNum === 1) && (pNum === foundGame.turn % 2)) {
 
 
 										var p0 = new PlayerTemp;
@@ -668,7 +771,7 @@ module.exports = {
 
 										if (pNum === 0) {
 											//Check legality of scuttle
-											if ( (handSort1[req.body.index].rank <= 10) && (fieldSort2[req.body.target].rank <= 10) && ( (handSort1[req.body.index].rank > fieldSort2[req.body.target].rank) || ( (handSort1[req.body.index].rank === fieldSort2[req.body.target].rank) && (handSort1[req.body.index].suit > fieldSort2[req.body.target].suit) ) ) ) {
+											if ((handSort1[req.body.index].rank <= 10) && (fieldSort2[req.body.target].rank <= 10) && ((handSort1[req.body.index].rank > fieldSort2[req.body.target].rank) || ((handSort1[req.body.index].rank === fieldSort2[req.body.target].rank) && (handSort1[req.body.index].suit > fieldSort2[req.body.target].suit)))) {
 												console.log("Scuttle is legal");
 												scrapSort.push(fieldSort2.splice(req.body.target, 1)[0]);
 												scrapSort[scrapSort.length - 1].index = scrapSort.length - 1;
@@ -677,9 +780,9 @@ module.exports = {
 
 												scrapSort[scrapSort.length - 1].index = scrapSort.length - 1;
 												//Server Changes
-												foundGame.scrap.add(scrapSort[scrapSort.length - 2].id);      //Move oppoent's Card
+												foundGame.scrap.add(scrapSort[scrapSort.length - 2].id); //Move oppoent's Card
 												playerSort[1].field.remove(scrapSort[scrapSort.length - 2].id);
-												foundGame.scrap.add(scrapSort[scrapSort.length - 1].id);      //Move your Card         
+												foundGame.scrap.add(scrapSort[scrapSort.length - 1].id); //Move your Card         
 												playerSort[0].hand.remove(scrapSort[scrapSort.length - 1].id);
 												playerSort[0].save(
 													function(error, s) {
@@ -722,18 +825,18 @@ module.exports = {
 																				// console.log("\nLogging cards with indices decrimented");
 																				// console.log(cards);
 																			});
-																		
+
 																	});
 															});
 													});
 
 											}
-												//Local Data for Client Update
+											//Local Data for Client Update
 
 
 										} else if (pNum === 1) {
 											//Check legality of scuttle
-											if ( (handSort2[req.body.index].rank <= 10) && (fieldSort1[req.body.target].rank <= 10) && ( (handSort2[req.body.index].rank > fieldSort1[req.body.target].rank) || ( (handSort2[req.body.index].rank === fieldSort1[req.body.target].rank) && (handSort2[req.body.index].suit > fieldSort1[req.body.target].suit) ) ) ) {
+											if ((handSort2[req.body.index].rank <= 10) && (fieldSort1[req.body.target].rank <= 10) && ((handSort2[req.body.index].rank > fieldSort1[req.body.target].rank) || ((handSort2[req.body.index].rank === fieldSort1[req.body.target].rank) && (handSort2[req.body.index].suit > fieldSort1[req.body.target].suit)))) {
 												console.log("Scuttle is legal");
 												// Local changes for client
 												scrapSort.push(fieldSort1.splice(req.body.target, 1)[0]);
@@ -743,9 +846,9 @@ module.exports = {
 												scrapSort[scrapSort.length - 1].index = scrapSort.length - 1;
 
 												// Server Changes
-												foundGame.scrap.add(scrapSort[scrapSort.length - 2].id);      //Move oppoent's Card
+												foundGame.scrap.add(scrapSort[scrapSort.length - 2].id); //Move oppoent's Card
 												playerSort[0].field.remove(scrapSort[scrapSort.length - 2].id);
-												foundGame.scrap.add(scrapSort[scrapSort.length - 1].id);      //Move your Card         
+												foundGame.scrap.add(scrapSort[scrapSort.length - 1].id); //Move your Card         
 												playerSort[1].hand.remove(scrapSort[scrapSort.length - 1].id);
 												playerSort[1].save(
 													function(error, s) {
@@ -762,12 +865,12 @@ module.exports = {
 																			function(cardE, cards) {
 																				cards[0].index = scrapSort.length - 1;
 																				cards[0].save(
-																				function(err_or, saving) {
-																					cards[1].index = scrapSort.length - 2;
-																					// console.log("\nCards just moved to scrap:");
-																					// console.log(cards);
-																					cards[1].save();
-																				});
+																					function(err_or, saving) {
+																						cards[1].index = scrapSort.length - 2;
+																						// console.log("\nCards just moved to scrap:");
+																						// console.log(cards);
+																						cards[1].save();
+																					});
 																			});
 																		// Change the indices of Cards in hand after the moved Card
 																		var decriment = [];
@@ -790,12 +893,12 @@ module.exports = {
 																				// console.log("\nLogging cards with indices decrimented");
 																				// console.log(cards);
 																			});
-																		
+
 																	});
 															});
 													});
 											}
-										}											
+										}
 
 										p0.hand = handSort1;
 										p0.field = fieldSort1;
@@ -806,8 +909,8 @@ module.exports = {
 
 										Game.publishUpdate(foundGame.id, {
 											players: players,
-											deck   : deckSort,
-											scrap  : scrapSort
+											deck: deckSort,
+											scrap: scrapSort
 										});
 										res.send('Card scuttled');
 
