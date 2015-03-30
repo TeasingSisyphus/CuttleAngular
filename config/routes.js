@@ -53,6 +53,7 @@ module.exports.routes = {
   '/game/deal'          : 'GameController.deal',    
   '/game/shuffle'       : 'GameController.shuffle',
   '/game/draw'          : 'GameController.draw',
-  '/game/toField'       : 'GameController.toField'
+  '/game/toField'       : 'GameController.toField',
+  '/game/scuttle'       : 'GameController.scuttle'
 
 };

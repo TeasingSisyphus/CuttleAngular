@@ -331,6 +331,7 @@ module.exports = {
 						}
 
 						var shuffled = sortCards(sortDeck);
+						foundGame.save();
 
 						Game.publishUpdate(foundGame.id, {
 							deck: shuffled
@@ -345,7 +346,7 @@ module.exports = {
 		if (req.isSocket && req.body.hasOwnProperty('id')) {
 			console.log('\nDraw requested for game: ' + req.body.id);
 
-			Game.findOne(req.body.id).populate('deck').populate('players').exec(
+			Game.findOne(req.body.id).populateAll().exec(
 				function(err, foundGame) {
 					if (err || !foundGame) {
 						console.log("Game " + req.body.id + " not found for deal");
@@ -461,7 +462,7 @@ module.exports = {
 		console.log(req.body);
 		if (req.isSocket && req.body.hasOwnProperty('id') && req.body.hasOwnProperty('index')) {
 			console.log('\nField requested for game: ' + req.body.id + ' with index: ' + req.body.index);
-			Game.findOne(req.body.id).populate('players').exec(
+			Game.findOne(req.body.id).populateAll().exec(
 				function(err, foundGame) {
 					if (err || !foundGame) {
 						console.log("Game " + req.body.id + " not found for field");
@@ -489,8 +490,10 @@ module.exports = {
 										res.send(404);
 
 									}
+									//CHANGE CONDITIONAL TO USE SORTED HANDS
 									if ((pNum === 0 || pNum === 1) && (pNum === foundGame.turn % 2) && (playerSort[pNum].hand[req.body.index].rank !== 11)) {
 										console.log("\nField move is legal for game " + foundGame.id);
+
 
 										var p0 = new PlayerTemp;
 										var p1 = new PlayerTemp;
@@ -589,6 +592,224 @@ module.exports = {
 											players: players
 										});
 										res.send('Card moved to field');
+
+
+									} else {
+										console.log("Not a legal move");
+										res.send("Not a legal move!");
+									}
+								}
+							});
+
+					} else {
+						console.log("Not enough players!");
+						res.send("Not enough players!");
+					}
+				});
+
+
+		}
+	},
+
+	scuttle: function(req, res) {
+
+		console.log(req.body);
+		if ( req.isSocket && req.body.hasOwnProperty('id') && req.body.hasOwnProperty('index') && req.body.hasOwnProperty('target') ) {
+			console.log('\nScuttle requested for game: ' + req.body.id + ' with index: ' + req.body.index + " and target: " + req.body.target);
+			Game.findOne(req.body.id).populateAll().exec(
+				function(err, foundGame) {
+					if (err || !foundGame) {
+						console.log("Game " + req.body.id + " not found for scuttle");
+						res.send(404);
+					} else if (foundGame.players.length === foundGame.playerLimit) {
+						Player.find([foundGame.players[0].id, foundGame.players[1].id]).populateAll().exec(
+							function(e, pop_players) {
+								if (e || !pop_players) {
+									console.log("Players not found in game: " + foundGame.id + " for scuttle");
+									res.send(404);
+								} else {
+
+									var playerSort = sortPlayers(pop_players);
+									var pNum = null;
+
+
+									if (req.socket.id === playerSort[0].socketId) {
+										pNum = 0;
+									} else if (req.socket.id === playerSort[1].socketId) {
+
+										pNum = 1;
+
+									} else {
+
+										console.log('Requesting socket: ' + req.socket.id + " is not in game: " + foundGame.id);
+										res.send(404);
+
+									}
+									if ( (pNum === 0 || pNum === 1) && (pNum === foundGame.turn % 2) ) {
+
+
+										var p0 = new PlayerTemp;
+										var p1 = new PlayerTemp;
+
+										var deckSort = sortCards(foundGame.deck);
+										var scrapSort = sortCards(foundGame.scrap);
+
+										var handSort1 = sortCards(playerSort[0].hand);
+										var fieldSort1 = sortCards(playerSort[0].field);
+
+										var handSort2 = sortCards(playerSort[1].hand);
+										var fieldSort2 = sortCards(playerSort[1].field);
+
+										console.log("\nLogging foundgame.scrap:")
+										console.log(foundGame.scrap);
+										console.log("\nLogging scrapSort before new cards are added: ");
+										console.log(scrapSort);
+
+
+										if (pNum === 0) {
+											//Check legality of scuttle
+											if ( (handSort1[req.body.index].rank <= 10) && (fieldSort2[req.body.target].rank <= 10) && ( (handSort1[req.body.index].rank > fieldSort2[req.body.target].rank) || ( (handSort1[req.body.index].rank === fieldSort2[req.body.target].rank) && (handSort1[req.body.index].suit > fieldSort2[req.body.target].suit) ) ) ) {
+												console.log("Scuttle is legal");
+												scrapSort.push(fieldSort2.splice(req.body.target, 1)[0]);
+												scrapSort[scrapSort.length - 1].index = scrapSort.length - 1;
+
+												scrapSort.push(handSort1.splice(req.body.index, 1)[0]);
+
+												scrapSort[scrapSort.length - 1].index = scrapSort.length - 1;
+												//Server Changes
+												foundGame.scrap.add(scrapSort[scrapSort.length - 2].id);      //Move oppoent's Card
+												playerSort[1].field.remove(scrapSort[scrapSort.length - 2].id);
+												foundGame.scrap.add(scrapSort[scrapSort.length - 1].id);      //Move your Card         
+												playerSort[0].hand.remove(scrapSort[scrapSort.length - 1].id);
+												playerSort[0].save(
+													function(error, s) {
+														playerSort[1].save(
+															function(e_rorr, saveIt) {
+																foundGame.turn++;
+																foundGame.save(
+																	function(e_ror_r, save_it) {
+																		console.log("Logging scrapSort: ");
+																		console.log(scrapSort);
+
+																		// Change index of Card just moved to scrap on server
+																		Card.find([scrapSort[scrapSort.length - 1].id, scrapSort[scrapSort.length - 2].id]).exec(
+																			function(cardE, cards) {
+																				cards[0].index = scrapSort.length - 1;
+																				cards[0].save();
+																				cards[1].index = scrapSort.length - 2;
+																				cards[1].save();
+																				// console.log("\nCards just moved to scrap:")
+																				// console.log(cards);
+																			});
+																		// Change the indices of Cards in hand after the moved Card
+																		var decriment = [];
+																		handSort1.forEach(function(card, index, hand) {
+																			if (index >= req.body.index) {
+																				decriment.push(card.id);
+																			}
+																		});
+																		fieldSort2.forEach(function(card, index, field) {
+																			if (index >= req.body.target) {
+																				decriment.push(card.id);
+																			}
+																		});
+																		Card.find(decriment).exec(
+																			function(teh_error, cards) {
+																				cards.forEach(function(card, index, list) {
+																					card.index--;
+																					card.save();
+																				});
+																				// console.log("\nLogging cards with indices decrimented");
+																				// console.log(cards);
+																			});
+																		
+																	});
+															});
+													});
+
+											}
+												//Local Data for Client Update
+
+
+										} else if (pNum === 1) {
+											//Check legality of scuttle
+											if ( (handSort2[req.body.index].rank <= 10) && (fieldSort1[req.body.target].rank <= 10) && ( (handSort2[req.body.index].rank > fieldSort1[req.body.target].rank) || ( (handSort2[req.body.index].rank === fieldSort1[req.body.target].rank) && (handSort2[req.body.index].suit > fieldSort1[req.body.target].suit) ) ) ) {
+												console.log("Scuttle is legal");
+												// Local changes for client
+												scrapSort.push(fieldSort1.splice(req.body.target, 1)[0]);
+												scrapSort[scrapSort.length - 1].index = scrapSort.length - 1;
+
+												scrapSort.push(handSort2.splice(req.body.index, 1)[0]);
+												scrapSort[scrapSort.length - 1].index = scrapSort.length - 1;
+
+												// Server Changes
+												foundGame.scrap.add(scrapSort[scrapSort.length - 2].id);      //Move oppoent's Card
+												playerSort[0].field.remove(scrapSort[scrapSort.length - 2].id);
+												foundGame.scrap.add(scrapSort[scrapSort.length - 1].id);      //Move your Card         
+												playerSort[1].hand.remove(scrapSort[scrapSort.length - 1].id);
+												playerSort[1].save(
+													function(error, s) {
+														playerSort[0].save(
+															function(e_rorr, saveIt) {
+																foundGame.turn++;
+																foundGame.save(
+																	function(e_ror_r, save_it) {
+																		console.log("Logging scrapSort: ");
+																		console.log(scrapSort);
+
+																		// Change index of Card just moved to scrap on server
+																		Card.find([scrapSort[scrapSort.length - 1].id, scrapSort[scrapSort.length - 2].id]).exec(
+																			function(cardE, cards) {
+																				cards[0].index = scrapSort.length - 1;
+																				cards[0].save(
+																				function(err_or, saving) {
+																					cards[1].index = scrapSort.length - 2;
+																					// console.log("\nCards just moved to scrap:");
+																					// console.log(cards);
+																					cards[1].save();
+																				});
+																			});
+																		// Change the indices of Cards in hand after the moved Card
+																		var decriment = [];
+																		handSort2.forEach(function(card, index, hand) {
+																			if (index >= req.body.index) {
+																				decriment.push(card.id);
+																			}
+																		});
+																		fieldSort1.forEach(function(card, index, field) {
+																			if (index >= req.body.target) {
+																				decriment.push(card.id);
+																			}
+																		});
+																		Card.find(decriment).exec(
+																			function(teh_error, cards) {
+																				cards.forEach(function(card, index, list) {
+																					card.index--;
+																					card.save();
+																				});
+																				// console.log("\nLogging cards with indices decrimented");
+																				// console.log(cards);
+																			});
+																		
+																	});
+															});
+													});
+											}
+										}											
+
+										p0.hand = handSort1;
+										p0.field = fieldSort1;
+										p1.hand = handSort2;
+										p1.field = fieldSort2;
+
+										var players = [p0, p1];
+
+										Game.publishUpdate(foundGame.id, {
+											players: players,
+											deck   : deckSort,
+											scrap  : scrapSort
+										});
+										res.send('Card scuttled');
 
 
 									} else {

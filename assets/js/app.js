@@ -143,7 +143,7 @@
 		this.name = '';
 		this.turn = 0;
 		this.playerNum = null;
-		this.selImg = '';
+		this.selImg = 'images/word-ace-card-back.jpg';
 		this.selIndex = null;
 		this.selected = false;
 
@@ -210,7 +210,7 @@
 				$scope.game.selected = true;
 			} else {
 				console.log('\nDeselcting');
-				$scope.game.selImg   = '';
+				$scope.game.selImg   = 'images/word-ace-card-back.jpg';
 				$scope.game.selIndex = null;
 				$scope.game.selected = false;
 
@@ -227,8 +227,31 @@
 				},
 				function(res) {
 					console.log(res);
-					$scope.selIndex = null;
-					$scope.selected = false;
+					console.log("Deselecting after toField");
+					$scope.game.selIndex = null;
+					$scope.game.selected = false;
+					$scope.game.selImg = 'images/word-ace-card-back.jpg';
+					$scope.$apply();
+				});
+			}
+		};
+
+		//Requests scuttling an opponent's card with one from your hand (both will be scrapped)
+		this.scuttle = function(target_index) {
+			if ($scope.game.selected) {
+				console.log("\nRequesting to scuttle card " + target_index + " with card " + $scope.game.selIndex + " from hand");
+				socket.get('/game/scuttle', {
+					id     : $scope.game.id,
+					index  : $scope.game.selIndex,
+					target : target_index
+				},
+				function(res) {
+					console.log(res);
+					console.log("Deselecting after scuttle");
+					$scope.game.selIndex = null;
+					$scope.game.selected = false;
+					$scope.game.selImg = 'images/word-ace-card-back.jpg';
+					$scope.$apply();					
 				});
 			}
 		};
@@ -246,7 +269,7 @@
 						$scope.game.deck = obj.data.deck;
 					}
 					if (obj.data.hasOwnProperty('scrap') ){
-						$scope.game.scrap = obj.data.game.scrap;
+						$scope.game.scrap = obj.data.scrap;
 					}
 
 			}

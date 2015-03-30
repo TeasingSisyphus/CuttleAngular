@@ -47,7 +47,7 @@
                 </div>
                 <div class='field_wrap'>
                     <p>Opponent's Field:</p>
-                    <img ng-repeat="card in game.players[(game.playerNum + 1) % 2].field" class='card' id="{{card.img}}"ng-src="{{card.img}}" alt="{{card.alt}}"></img>
+                    <img ng-repeat="card in game.players[(game.playerNum + 1) % 2].field" class='card' id="{{card.img}}" ng-click="game.scuttle(card.index)" ng-src="{{card.img}}" alt="{{card.alt}}"></img>
                 </div>
             </div>
             
@@ -55,7 +55,8 @@
                 <button ng-click="game.shuffle()">Shuffle Deck</button>
                 <button ng-click="game.deal()">Deal Hands</button>
                 <button ng-click="game.draw()">Draw</button>
-                <img id='selector' class='card' ng-src='{{game.selImg}}' ></img> <!-- ng-show='{{game.selected}}' -->
+                <img id='selector' class='card' ng-src='{{game.selImg}}'></img> <!-- ng-show='{{game.selected}}' -->
+                <div>{{game.scrap.length}} Cards in Scrap</div>
             </div>
 
 

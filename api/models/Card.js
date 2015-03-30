@@ -8,16 +8,16 @@
 module.exports = {
 
   attributes: {
-
-  	suit: {
-  		type: 'integer',
-  		required: true
-  	},
-
   	rank: {
   		type: 'integer',
   		required: true
   	},
+
+    suit: {
+      type: 'integer',
+      required: true
+    },
+
 
   	//Synthetic Index indicating where in a hand/field/deck/scrap the card SHOULD BE
   	index: {

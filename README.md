@@ -41,3 +41,17 @@ BUGS:
 		-If two players join in rapid (not that rapid) succession, server will consider both players to be player 0
 	-HOMEPAGE GAMEDISPLAY
 		-The first tab to load the homepage occasionally doesn't get updated when games are created (including its own creations)
+	-toField
+		-A jack was played to the field like a point card
+		-Sometimes a point card can't be played to the field if you have a jack in hand
+			-Have been unable to replicate the bug
+			-CONDITIONAL CHECKS WRONG CARD
+				-USE SORTED HANDS
+	-Scuttling
+		-Indices of cards in field are off
+		-Scrap pile sometimes only registers as the cards newly added to it
+			-It seemed to be a problem with draw()
+				-the game wasn't fully populated, so saving it, deleted the scrap attribute
+		-Player seems to have hand and field deleted?
+			-running consecutive save() methods caused the fuckup for UNKNOWN REASONS
+				-Making the second save() happen inside a callback passed to the first save() fixed it ????
