@@ -5,6 +5,10 @@ a [Sails](http://sailsjs.org) application
 
 
 PREVIOUS:
+	-Added gamelog
+		-Improved Card.alt for better readability 
+			-Still only reads number of rank (use bigger switch statement to read rank as a word ie 1 = One, 13 = King)
+	-Fixed toField to check for a jack in the proper place and time
 	-Enabled victory
 	-Enabled playing a card to the field
 	-Enabled drawing a card on your turn
@@ -27,11 +31,14 @@ PREVIOUS:
 	-Client can request to be subscribed to a game
 
 NEXT:
-	-Enable
+	-Enable Glasses Eights
+		-Create different pictures for glasses
+		-Either use different tag, or toggleable directive to make opponent's cards visible/not
+		-Find a way to display the eight differently if it is glasses (change its img)
+	-Enable One-Off Effects
 	-Clean up DOM
-		-Create space for selector and fields even when no cards are present
-			-Made space for selector by using cardback image when nothing is selected
-		-Properly Delsect by replacing image with a blank card
+		-Make space for hands and fields before they are filled with cards
+
 	-Fix playerNum bug
 		-Change timing of Card creation loop and display a loading screen while users wait
 			-Instantiate cards when 2nd player joins?

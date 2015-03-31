@@ -62,5 +62,11 @@ module.exports = {
       via: 'scrap'
     },
 
+    //Log of all moves made, stored as strings
+    log: {
+      type: 'array',
+      defaultsTo: []
+    }
+
   }
 };

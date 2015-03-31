@@ -218,15 +218,28 @@ module.exports = {
 					for (suit = 0; suit <= 3; suit++) {
 						for (rank = 1; rank <= 13; rank++) {
 							var path = 'images/cards/card_' + suit + '_' + rank + '.png';
-							//TODO: Use switch statements to flesh out alt text
-							var txt = rank + ' of ' + suit;
+							switch (suit) {
+								case 0:
+									var str_suit = 'Clubs';
+									break;
+								case 1:
+									var str_suit = 'Diamonds';
+									break;
+								case 2:
+									var str_suit = 'Hearts';
+									break;
+								case 3:
+									var str_suit = 'Spades';
+									break;
+							}
+							var txt = rank + ' of ' + str_suit;
 							Card.create({
 								suit: suit,
 								rank: rank,
 								img: path,
 								alt: txt,
 								index: 13 * suit + rank - 1,
-								collectionIndex: 13 * suit + rank - 1
+								// collectionIndex: 13 * suit + rank - 1
 							}).exec(
 								function(cardError, card) {
 									if (cardError || !card) {
@@ -480,13 +493,11 @@ module.exports = {
 										var fieldSort2 = sortCards(playerSort[1].field);
 
 
+										var log_tail = " drew the " + deckSort[0].alt; 	
 
 										playerSort[pNum].hand.add(deckSort[0].id);
 										playerSort[pNum].save();
 
-										foundGame.deck.remove(deckSort[0].id);
-										foundGame.turn++;
-										foundGame.save();
 
 
 
@@ -496,6 +507,11 @@ module.exports = {
 
 										switch (pNum) {
 											case 0:
+												var log = 'Player 0 ' + log_tail;
+												foundGame.log.push(log);
+												foundGame.deck.remove(deckSort[0].id);
+												foundGame.turn++;
+												foundGame.save();
 												handSort1.push(deckSort.shift());
 												Card.findOne(handSort1[handSort1.length - 1].id).exec(
 													function(cardE, card) {
@@ -507,6 +523,11 @@ module.exports = {
 
 												break;
 											case 1:
+												var log = 'Player 1 ' + log_tail;
+												foundGame.log.push(log);
+												foundGame.deck.remove(deckSort[0].id);
+												foundGame.turn++;
+												foundGame.save();
 												handSort2.push(deckSort.shift());
 												Card.findOne(handSort2[handSort2.length - 1].id).exec(
 													function(cardE, card) {
@@ -588,7 +609,7 @@ module.exports = {
 
 									}
 									//CHANGE CONDITIONAL TO USE SORTED HANDS
-									if ((pNum === 0 || pNum === 1) && (pNum === foundGame.turn % 2) && (playerSort[pNum].hand[req.body.index].rank !== 11)) {
+									if ( (pNum === 0 || pNum === 1) && (pNum === foundGame.turn % 2) ) {
 										console.log("\nField move is legal for game " + foundGame.id);
 
 
@@ -596,86 +617,104 @@ module.exports = {
 										var p1 = new PlayerTemp;
 
 										var handSort1 = sortCards(playerSort[0].hand);
+										var handSort2 = sortCards(playerSort[1].hand);
 										var fieldSort1 = sortCards(playerSort[0].field);
 
-										var handSort2 = sortCards(playerSort[1].hand);
 										var fieldSort2 = sortCards(playerSort[1].field);
 
-										foundGame.turn++;
-										foundGame.save();
 
-										//Local Data for Client Update
+
+
+										
 										if (pNum === 0) {
-											fieldSort1.push(handSort1.splice(req.body.index, 1)[0]);
+											if (handSort1[req.body.index].rank !== 11){
+												foundGame.turn++;
+												var log = 'Player 0 played the ' + handSort1[req.body.index].alt + ' for points';
+												foundGame.log.push(log); 
+												foundGame.save();
+												fieldSort1.push(handSort1.splice(req.body.index, 1)[0]);
 
-											fieldSort1[fieldSort1.length - 1].index = fieldSort1.length - 1;
-											//Server Changes
-											playerSort[pNum].field.add(fieldSort1[fieldSort1.length - 1].id);
-											playerSort[pNum].hand.remove(fieldSort1[fieldSort1.length - 1].id);
-											playerSort[pNum].save();
+												fieldSort1[fieldSort1.length - 1].index = fieldSort1.length - 1;
+												//Server Changes
+												playerSort[pNum].field.add(fieldSort1[fieldSort1.length - 1].id);
+												playerSort[pNum].hand.remove(fieldSort1[fieldSort1.length - 1].id);
+												playerSort[pNum].save();
 
-											console.log("Logging card in fieldSort: ");
-											console.log(fieldSort1[fieldSort1.length - 1]);
+												console.log("Logging card in fieldSort: ");
+												console.log(fieldSort1[fieldSort1.length - 1]);
 
-											//Change index of Card just moved to field on server
-											Card.findOne(fieldSort1[fieldSort1.length - 1].id).exec(
-												function(cardE, card) {
-													card.index = fieldSort1.length - 1;
-													card.save();
-													console.log("\nCard just moved to field:")
-													console.log(card);
-												});
-											// Change the indices of Cards in hand after the moved Card
-											var decriment = [];
-											handSort1.forEach(function(card, index, hand) {
-												if (index >= req.body.index) {
-													decriment.push(card.id);
-												}
-											});
-											Card.find(decriment).exec(
-												function(teh_error, cards) {
-													// console.log("\nLogging cards to have indices decrimented");
-													// console.log(cards);
-													cards.forEach(function(card, index, list) {
-														card.index--;
+												//Change index of Card just moved to field on server
+												Card.findOne(fieldSort1[fieldSort1.length - 1].id).exec(
+													function(cardE, card) {
+														card.index = fieldSort1.length - 1;
 														card.save();
-													})
+														console.log("\nCard just moved to field:")
+														console.log(card);
+													});
+												// Change the indices of Cards in hand after the moved Card
+												var decriment = [];
+												handSort1.forEach(function(card, index, hand) {
+													if (index >= req.body.index) {
+														decriment.push(card.id);
+													}
 												});
+												Card.find(decriment).exec(
+													function(teh_error, cards) {
+														cards.forEach(function(card, index, list) {
+															card.index--;
+															card.save();
+														})
+													});
+												
+											} else {
+												console.log("Player 0 attempting to play Jack to their field");
+												res.send("You must play a jack on a point card already on the field!");
+											}
 
 										} else if (pNum === 1) {
-											fieldSort2.push(handSort2.splice(req.body.index, 1)[0]);
 
-											fieldSort2[fieldSort2.length - 1].index = fieldSort2.length - 1;
-											//Server changes
-											playerSort[pNum].field.add(fieldSort2[fieldSort2.length - 1].id);
-											playerSort[pNum].hand.remove(fieldSort2[fieldSort2.length - 1].id);
-											playerSort[pNum].save();
-											console.log("Logging card in fieldSort: ");
-											console.log(fieldSort2[fieldSort2.length - 1]);
-											//Change index of Card just moved to field on server
-											Card.findOne(fieldSort2[fieldSort2.length - 1].id).exec(
-												function(cardE, card) {
-													card.index = fieldSort2.length - 1;
-													card.save();
-													console.log("\nCard just moved to field");
-													console.log(card);
-												});
-											//Change the indices of Cards in hand after the moved Card
-											var decriment = [];
-											handSort2.forEach(function(card, index, hand) {
-												if (index >= req.body.index) {
-													decriment.push(card.id);
-												}
-											});
-											Card.find(decriment).exec(
-												function(teh_error, cards) {
-													// console.log("\nLogging cards to have indices decrimented");
-													// console.log(cards);
-													cards.forEach(function(card, index, list) {
-														card.index--;
+											if (handSort2[req.body.index].rank !== 11) {
+												foundGame.turn++;
+												var log = 'Player 1 played the ' + handSort2[req.body.index].alt + ' for points';
+												foundGame.log.push(log); 												
+												foundGame.save();
+
+												fieldSort2.push(handSort2.splice(req.body.index, 1)[0]);
+												fieldSort2[fieldSort2.length - 1].index = fieldSort2.length - 1;
+
+												//Server changes
+												playerSort[pNum].field.add(fieldSort2[fieldSort2.length - 1].id);
+												playerSort[pNum].hand.remove(fieldSort2[fieldSort2.length - 1].id);
+												playerSort[pNum].save();
+												console.log("Logging card in fieldSort: ");
+												console.log(fieldSort2[fieldSort2.length - 1]);
+
+												//Change index of Card just moved to field on server
+												Card.findOne(fieldSort2[fieldSort2.length - 1].id).exec(
+													function(cardE, card) {
+														card.index = fieldSort2.length - 1;
 														card.save();
-													})
+														console.log("\nCard just moved to field");
+														console.log(card);
+													});
+												//Change the indices of Cards in hand after the moved Card
+												var decriment = [];
+												handSort2.forEach(function(card, index, hand) {
+													if (index >= req.body.index) {
+														decriment.push(card.id);
+													}
 												});
+												Card.find(decriment).exec(
+													function(teh_error, cards) {
+														cards.forEach(function(card, index, list) {
+															card.index--;
+															card.save();
+														})
+													});
+											} else {
+												console.log("Player 1 is attempting to play a Jack to their field");
+												res.send("You must play a jack on a point card already on the field!");
+											}
 										}
 
 										p0.hand = handSort1;
@@ -763,22 +802,19 @@ module.exports = {
 										var handSort2 = sortCards(playerSort[1].hand);
 										var fieldSort2 = sortCards(playerSort[1].field);
 
-										console.log("\nLogging foundgame.scrap:")
-										console.log(foundGame.scrap);
-										console.log("\nLogging scrapSort before new cards are added: ");
-										console.log(scrapSort);
-
 
 										if (pNum === 0) {
 											//Check legality of scuttle
 											if ((handSort1[req.body.index].rank <= 10) && (fieldSort2[req.body.target].rank <= 10) && ((handSort1[req.body.index].rank > fieldSort2[req.body.target].rank) || ((handSort1[req.body.index].rank === fieldSort2[req.body.target].rank) && (handSort1[req.body.index].suit > fieldSort2[req.body.target].suit)))) {
 												console.log("Scuttle is legal");
+												var log = "Player 0 scuttled Player 1's " + fieldSort2[req.body.target].alt + " with their " + handSort1[req.body.index].alt;
+
 												scrapSort.push(fieldSort2.splice(req.body.target, 1)[0]);
 												scrapSort[scrapSort.length - 1].index = scrapSort.length - 1;
 
 												scrapSort.push(handSort1.splice(req.body.index, 1)[0]);
-
 												scrapSort[scrapSort.length - 1].index = scrapSort.length - 1;
+
 												//Server Changes
 												foundGame.scrap.add(scrapSort[scrapSort.length - 2].id); //Move oppoent's Card
 												playerSort[1].field.remove(scrapSort[scrapSort.length - 2].id);
@@ -789,6 +825,7 @@ module.exports = {
 														playerSort[1].save(
 															function(e_rorr, saveIt) {
 																foundGame.turn++;
+																foundGame.log.push(log);
 																foundGame.save(
 																	function(e_ror_r, save_it) {
 																		console.log("Logging scrapSort: ");
@@ -838,6 +875,8 @@ module.exports = {
 											//Check legality of scuttle
 											if ((handSort2[req.body.index].rank <= 10) && (fieldSort1[req.body.target].rank <= 10) && ((handSort2[req.body.index].rank > fieldSort1[req.body.target].rank) || ((handSort2[req.body.index].rank === fieldSort1[req.body.target].rank) && (handSort2[req.body.index].suit > fieldSort1[req.body.target].suit)))) {
 												console.log("Scuttle is legal");
+												var log = "Player 1 scuttled Player 0's " + fieldSort1[req.body.target].alt + " with their " + handSort2[req.body.index].alt;
+
 												// Local changes for client
 												scrapSort.push(fieldSort1.splice(req.body.target, 1)[0]);
 												scrapSort[scrapSort.length - 1].index = scrapSort.length - 1;
@@ -855,6 +894,7 @@ module.exports = {
 														playerSort[0].save(
 															function(e_rorr, saveIt) {
 																foundGame.turn++;
+																foundGame.log.push(log);
 																foundGame.save(
 																	function(e_ror_r, save_it) {
 																		console.log("Logging scrapSort: ");

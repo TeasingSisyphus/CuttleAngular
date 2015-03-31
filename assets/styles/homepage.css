@@ -22,11 +22,16 @@
 }
 
 .field_wrap{
-	height: 15%;
+	min-height: 30%;
+	display: block;
+}
+
+.hand_wrap{
+	/*min-height: 80px;*/
 	display: block;
 }
 
 #midWrap{
-	height: 30%;
+	/*height: 80px;*/
 	display: block;
 }
