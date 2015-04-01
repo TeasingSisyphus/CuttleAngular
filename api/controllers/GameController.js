@@ -231,6 +231,21 @@ module.exports = {
 					for (suit = 0; suit <= 3; suit++) {
 						for (rank = 1; rank <= 13; rank++) {
 							var path = 'images/cards/card_' + suit + '_' + rank + '.png';
+
+							switch (rank) {
+								case 11:
+									var str_rank = 'Jack';
+									break;
+								case 12:
+									var str_rank = 'Queen';
+									break;
+								case 13:
+									var str_rank = 'King';
+									break;
+								default:
+									var str_rank = rank;
+									break;
+							}
 							switch (suit) {
 								case 0:
 									var str_suit = 'Clubs';
@@ -245,7 +260,7 @@ module.exports = {
 									var str_suit = 'Spades';
 									break;
 							}
-							var txt = rank + ' of ' + str_suit;
+							var txt = str_rank + ' of ' + str_suit;
 							Card.create({
 								suit: suit,
 								rank: rank,
@@ -638,8 +653,14 @@ module.exports = {
 
 										if (pNum === 0) {
 											if (handSort1[req.body.index].rank !== 11) {
+
+												var logTail = '';
+												if (handSort1[req.body.index].rank <= 10) {
+													logTail = ' for points';
+												}
+
 												foundGame.turn++;
-												var log = 'Player 0 played the ' + handSort1[req.body.index].alt + ' for points';
+												var log = 'Player 0 played the ' + handSort1[req.body.index].alt + logTail;
 												foundGame.log.push(log);
 												foundGame.save();
 												fieldSort1.push(handSort1.splice(req.body.index, 1)[0]);
@@ -684,8 +705,12 @@ module.exports = {
 										} else if (pNum === 1) {
 
 											if (handSort2[req.body.index].rank !== 11) {
+												var logTail = '';
+												if (handSort2[req.body.index].rank <= 10) {
+													logTail = ' for points';
+												}
 												foundGame.turn++;
-												var log = 'Player 1 played the ' + handSort2[req.body.index].alt + ' for points';
+												var log = 'Player 1 played the ' + handSort2[req.body.index].alt + logTail;
 												foundGame.log.push(log);
 												foundGame.save();
 
