@@ -46,14 +46,16 @@ module.exports.routes = {
    *                                                                          *
    ***************************************************************************/
 
-  '/game/subscribe'     : 'GameController.subscribe',
-  '/game/create'        : 'GameController.create',
+  '/game/subscribe': 'GameController.subscribe',
+  '/game/create': 'GameController.create',
   '/game/game_subscribe': 'GameController.gameSubscribe',
-  '/game/update_all'    : 'GameController.updateAll',
-  '/game/deal'          : 'GameController.deal',    
-  '/game/shuffle'       : 'GameController.shuffle',
-  '/game/draw'          : 'GameController.draw',
-  '/game/toField'       : 'GameController.toField',
-  '/game/scuttle'       : 'GameController.scuttle'
+  '/game/update_all': 'GameController.updateAll',
+  '/game/deal': 'GameController.deal',
+  '/game/shuffle': 'GameController.shuffle',
+  '/game/draw': 'GameController.draw',
+  '/game/toField': 'GameController.toField',
+  '/game/scuttle': 'GameController.scuttle',
+  'game/glasses': 'GameController.glasses'
+
 
 };

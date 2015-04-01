@@ -493,11 +493,10 @@ module.exports = {
 										var fieldSort2 = sortCards(playerSort[1].field);
 
 
-										var log_tail = " drew the " + deckSort[0].alt; 	
+										var log_tail = " drew the " + deckSort[0].alt;
 
 										playerSort[pNum].hand.add(deckSort[0].id);
 										playerSort[pNum].save();
-
 
 
 
@@ -609,7 +608,7 @@ module.exports = {
 
 									}
 									//CHANGE CONDITIONAL TO USE SORTED HANDS
-									if ( (pNum === 0 || pNum === 1) && (pNum === foundGame.turn % 2) ) {
+									if ((pNum === 0 || pNum === 1) && (pNum === foundGame.turn % 2)) {
 										console.log("\nField move is legal for game " + foundGame.id);
 
 
@@ -624,13 +623,11 @@ module.exports = {
 
 
 
-
-										
 										if (pNum === 0) {
-											if (handSort1[req.body.index].rank !== 11){
+											if (handSort1[req.body.index].rank !== 11) {
 												foundGame.turn++;
 												var log = 'Player 0 played the ' + handSort1[req.body.index].alt + ' for points';
-												foundGame.log.push(log); 
+												foundGame.log.push(log);
 												foundGame.save();
 												fieldSort1.push(handSort1.splice(req.body.index, 1)[0]);
 
@@ -663,9 +660,9 @@ module.exports = {
 														cards.forEach(function(card, index, list) {
 															card.index--;
 															card.save();
-														})
+														});
 													});
-												
+
 											} else {
 												console.log("Player 0 attempting to play Jack to their field");
 												res.send("You must play a jack on a point card already on the field!");
@@ -676,7 +673,7 @@ module.exports = {
 											if (handSort2[req.body.index].rank !== 11) {
 												foundGame.turn++;
 												var log = 'Player 1 played the ' + handSort2[req.body.index].alt + ' for points';
-												foundGame.log.push(log); 												
+												foundGame.log.push(log);
 												foundGame.save();
 
 												fieldSort2.push(handSort2.splice(req.body.index, 1)[0]);
@@ -709,7 +706,7 @@ module.exports = {
 														cards.forEach(function(card, index, list) {
 															card.index--;
 															card.save();
-														})
+														});
 													});
 											} else {
 												console.log("Player 1 is attempting to play a Jack to their field");
@@ -972,7 +969,152 @@ module.exports = {
 		}
 	},
 
+	glasses: function(req, res) {
+		if (req.isSocket && req.body.hasOwnProperty('id') && req.body.hasOwnProperty('index')) {
+			console.log("Glasses play requested for game " + req.body.index);
+			Game.findOne(req.body.id).populateAll().exec(
+				function(err, foundGame) {
+					if (err || !foundGame) {
+						console.log("Game " + req.body.id + " not found for glasses");
+						res.send({
+							success: false
+						});
+					} else if (foundGame.players.length === foundGame.playerLimit) {
+						Player.find([foundGame.players[0].id, foundGame.players[1].id]).populateAll().exec(
+							function(e, pop_players) {
+								if (e || !pop_players) {
+									console.log("Players not found for glasses");
+									res.send({
+										success: false
+									});
+								} else {
+									var playerSort = sortPlayers(pop_players);
+									console.log("\nLogging playerSort for glasses");
+									console.log(playerSort);
+									var pNum = null;
 
+
+									if (req.socket.id === playerSort[0].socketId) {
+										pNum = 0;
+									} else if (req.socket.id === playerSort[1].socketId) {
+
+										pNum = 1;
+
+									} else {
+
+										console.log('Requesting socket: ' + req.socket.id + " is not in game: " + foundGame.id);
+										res.send({
+											success: false
+										});
+									}
+									if ((pNum === 0 || pNum === 1) && (pNum === foundGame.turn % 2)) {
+										console.log("\nGlasses play is legal for game " + foundGame.id);
+
+
+										var p0 = new PlayerTemp;
+										var p1 = new PlayerTemp;
+
+										var handSort1 = sortCards(playerSort[0].hand);
+										var handSort2 = sortCards(playerSort[1].hand);
+										var fieldSort1 = sortCards(playerSort[0].field);
+
+										var fieldSort2 = sortCards(playerSort[1].field);
+
+										if (pNum === 0) {
+											var log = "Player 0 played the " + handSort1[req.body.index].alt + " as glasses";
+											foundGame.log.push(log);
+											foundGame.turn++;
+											foundGame.save();
+
+											playerSort[0].hand.remove(handSort1[req.body.index].id);
+											playerSort[0].field.add(handSort1[req.body.index].id);
+
+											playerSort[0].save(
+												function(er, s) {
+
+													var path = '';
+													//Local changes for clients
+													fieldSort1.push(handSort1.splice(req.body.index, 1)[0]);
+													fieldSort1[fieldSort1.length - 1].index = fieldSort1.length - 1;
+
+													//Change index of Card just moved to field on server
+													Card.findOne(fieldSort2[fieldSort2.length - 1].id).exec(
+														function(cardE, card) {
+															card.index = fieldSort2.length - 1;
+															card.isGlasses = true;
+
+															switch (card.suit) {
+																case 0:
+																	path = "images/cards/Glasses_Clubs.jpg"
+																	break;
+																case 1:
+																	path = "images/cards/Glasses_Diamonds.jpg"
+																	break;
+																case 2:
+																	path = "images/cards/Glasses_Hearts.jpg"
+																	break;
+																case 3:
+																	path = "images/cards/Glasses_Spades.jpg"
+																	break;
+
+															}
+															card.img = path;
+															card.save();
+															console.log("\nCard just moved to field");
+															console.log(card);
+
+															fieldSort1[fieldSort1.length - 1].img = path;
+														});
+													//Change the indices of Cards in hand after the moved Card
+													var decriment = [];
+													handSort1.forEach(function(card, index, hand) {
+														if (index >= req.body.index) {
+															decriment.push(card.id);
+														}
+													});
+													Card.find(decriment).exec(
+														function(teh_error, cards) {
+															cards.forEach(function(card, index, list) {
+																card.index--;
+																card.save();
+															});
+														});
+
+												});
+
+
+
+										} //End of correct turn conditional
+										p0.hand = handSort1;
+										p0.field = fieldSort1;
+										p1.hand = handSort2;
+										p1.field = fieldSort2;
+
+										var players = [p0, p1];
+
+										Game.publishUpdate(foundGame.id, {
+											players: players,
+											// deck: deckSort,
+											success: true
+										});
+
+									} else {
+										console.log("Wrong player's turn in game " + foundGame.id + " for glasses play");
+										res.send({
+											success: false
+										});
+									}
+								}
+							});
+					} else {
+						console.log("Not enough players in game " + foundGame.id + " for glasses play");
+						res.send({
+							success: false
+						});
+					}
+				});
+		}
+	},
 
 	updateAll: function(req, res) {
 		console.log('Publishing All updates');
