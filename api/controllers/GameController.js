@@ -815,7 +815,7 @@ module.exports = {
 
 										if (pNum === 0) {
 											//Check legality of scuttle
-											if ((handSort1[req.body.index].rank <= 10) && (fieldSort2[req.body.target].rank <= 10) && ((handSort1[req.body.index].rank > fieldSort2[req.body.target].rank) || ((handSort1[req.body.index].rank === fieldSort2[req.body.target].rank) && (handSort1[req.body.index].suit > fieldSort2[req.body.target].suit)))) {
+											if ( (handSort1[req.body.index].rank <= 10) && (fieldSort2[req.body.target].rank <= 10) && (!fieldSort2[req.body.target].isGlasses) && ((handSort1[req.body.index].rank > fieldSort2[req.body.target].rank) || ((handSort1[req.body.index].rank === fieldSort2[req.body.target].rank) && (handSort1[req.body.index].suit > fieldSort2[req.body.target].suit)))) {
 												console.log("Scuttle is legal");
 												var log = "Player 0 scuttled Player 1's " + fieldSort2[req.body.target].alt + " with their " + handSort1[req.body.index].alt;
 
