@@ -95,35 +95,35 @@ var winner = function(game, fields) {
 		case 0:
 			if (p0Points >= 21) {
 				console.log("\nPlayer 0 has won with " + p0Points + " points");
-				game.log.push("\nPlayer 0 has won with " + p0Points + " points");
+				game.log.push("Player 0 has won with " + p0Points + " points");
 				game.winner = 0;
 			}
 			break;
 		case 1:
 			if (p0Points >= 14) {
 				console.log("\nPlayer 0 has won with " + p0Points + " points and 1 King");
-				game.log.push("\nPlayer 0 has won with " + p0Points + " points and 1 King");
+				game.log.push("Player 0 has won with " + p0Points + " points and 1 King");
 				game.winner = 0;
 			}
 			break;
 		case 2:
 			if (p0Points >= 10) {
 				console.log("\nPlayer 0 has won with " + p0Points + " points and 2 Kings");
-				game.log.push("\nPlayer 0 has won with " + p0Points + " points and 2 Kings");
+				game.log.push("Player 0 has won with " + p0Points + " points and 2 Kings");
 				game.winner = 0;
 			}
 			break;
 		case 3:
 			if (p0Points >= 7) {
 				console.log("\nPlayer 0 has won with " + p0Points + " points and 3 Kings");
-				game.log.push("\nPlayer 0 has won with " + p0Points + " points and 3 Kings");
+				game.log.push("Player 0 has won with " + p0Points + " points and 3 Kings");
 				game.winner = 0;
 			}
 			break;
 		case 4:
 			if (p0Points >= 5) {
 				console.log("\nPlayer 0 has won with " + p0Points + " points and 4 Kings");
-				game.log.push("\nPlayer 0 has won with " + p0Points + " points and 4 Kings");
+				game.log.push("Player 0 has won with " + p0Points + " points and 4 Kings");
 				game.winner = 0;
 			}
 	}
@@ -133,35 +133,35 @@ var winner = function(game, fields) {
 		case 0:
 			if (p1Points >= 21) {
 				console.log("\nPlayer 1 has won with " + p1Points + " points");
-				game.log.push("\nPlayer 1 has won with " + p1Points + " points");
+				game.log.push("Player 1 has won with " + p1Points + " points");
 				game.winner = 1;
 			}
 			break;
 		case 1:
 			if (p1Points >= 14) {
 				console.log("\nPlayer 1 has won with " + p1Points + " points and 1 King");
-				game.log.push("\nPlayer 1 has won with " + p1Points + " points and 1 King");
+				game.log.push("Player 1 has won with " + p1Points + " points and 1 King");
 				game.winner = 1;
 			}
 			break;
 		case 2:
 			if (p1Points >= 10) {
 				console.log("\nPlayer 1 has won with " + p1Points + " points and 2 Kings");
-				game.log.push("\nPlayer 1 has won with " + p1Points + " points and 2 Kings");
+				game.log.push("Player 1 has won with " + p1Points + " points and 2 Kings");
 				game.winner = 1;
 			}
 			break;
 		case 3:
 			if (p1Points >= 7) {
 				console.log("\nPlayer 1 has won with " + p1Points + " points and 3 Kings");
-				game.log.push("\nPlayer 1 has won with " + p1Points + " points and 3 Kings");
+				game.log.push("Player 1 has won with " + p1Points + " points and 3 Kings");
 				game.winner = 1;
 			}
 			break;
 		case 4:
 			if (p1Points >= 5) {
 				console.log("\nPlayer 1 has won with " + p1Points + " points and 4 Kings");
-				game.log.push("\nPlayer 1 has won with " + p1Points + " points and 4 Kings");
+				game.log.push("Player 1 has won with " + p1Points + " points and 4 Kings");
 				game.winner = 1;
 			}
 	}
@@ -815,7 +815,7 @@ module.exports = {
 
 										if (pNum === 0) {
 											//Check legality of scuttle
-											if ( (handSort1[req.body.index].rank <= 10) && (fieldSort2[req.body.target].rank <= 10) && (!fieldSort2[req.body.target].isGlasses) && ((handSort1[req.body.index].rank > fieldSort2[req.body.target].rank) || ((handSort1[req.body.index].rank === fieldSort2[req.body.target].rank) && (handSort1[req.body.index].suit > fieldSort2[req.body.target].suit)))) {
+											if ((handSort1[req.body.index].rank <= 10) && (fieldSort2[req.body.target].rank <= 10) && (!fieldSort2[req.body.target].isGlasses) && ((handSort1[req.body.index].rank > fieldSort2[req.body.target].rank) || ((handSort1[req.body.index].rank === fieldSort2[req.body.target].rank) && (handSort1[req.body.index].suit > fieldSort2[req.body.target].suit)))) {
 												console.log("Scuttle is legal");
 												var log = "Player 0 scuttled Player 1's " + fieldSort2[req.body.target].alt + " with their " + handSort1[req.body.index].alt;
 
@@ -1041,73 +1041,75 @@ module.exports = {
 											playerSort[0].field.add(handSort1[req.body.index].id);
 
 											playerSort[0].save();
-												// function(er, s) {
+											// function(er, s) {
 
-													var path = '';
-													//Local changes for clients
-													fieldSort1.push(handSort1.splice(req.body.index, 1)[0]);
-													fieldSort1[fieldSort1.length - 1].index = fieldSort1.length - 1;
+											var path = '';
+											//Local changes for clients
+											fieldSort1.push(handSort1.splice(req.body.index, 1)[0]);
+											fieldSort1[fieldSort1.length - 1].index = fieldSort1.length - 1;
 
-													//Change index of Card just moved to field on server
-													Card.findOne(fieldSort1[fieldSort1.length - 1].id).exec(
-														function(cardE, card) {
-															card.index = fieldSort1.length - 1;
-															card.isGlasses = true;
+											//Change index of Card just moved to field on server
+											Card.findOne(fieldSort1[fieldSort1.length - 1].id).exec(
+												function(cardE, card) {
+													card.index = fieldSort1.length - 1;
+													card.isGlasses = true;
 
-															switch (card.suit) {
-																case 0:
-																	path = "images/cards/Glasses_Clubs.jpg"
-																	break;
-																case 1:
-																	path = "images/cards/Glasses_Diamonds.jpg"
-																	break;
-																case 2:
-																	path = "images/cards/Glasses_Hearts.jpg"
-																	break;
-																case 3:
-																	path = "images/cards/Glasses_Spades.jpg"
-																	break;
+													switch (card.suit) {
+														case 0:
+															path = "images/cards/Glasses_Clubs.jpg"
+															break;
+														case 1:
+															path = "images/cards/Glasses_Diamonds.jpg"
+															break;
+														case 2:
+															path = "images/cards/Glasses_Hearts.jpg"
+															break;
+														case 3:
+															path = "images/cards/Glasses_Spades.jpg"
+															break;
 
-															}
-															card.img = path;
-															card.save();
-															console.log("\nCard just moved to field");
-															console.log(card);
+													}
+													card.img = path;
+													card.save();
+													console.log("\nCard just moved to field");
+													console.log(card);
 
-															fieldSort1[fieldSort1.length - 1].img = path;
-															fieldSort1[fieldSort1.length - 1].isGlasses = true;
+													fieldSort1[fieldSort1.length - 1].img = path;
+													fieldSort1[fieldSort1.length - 1].isGlasses = true;
 
-															//Change the indices of Cards in hand after the moved Card
-															var decriment = [];
-															handSort1.forEach(function(card, index, hand) {
-																if (index >= req.body.index) {
-																	decriment.push(card.id);
-																}
+													//Change the indices of Cards in hand after the moved Card
+													var decriment = [];
+													handSort1.forEach(function(card, index, hand) {
+														if (index >= req.body.index) {
+															decriment.push(card.id);
+														}
+													});
+													Card.find(decriment).exec(
+														function(teh_error, cards) {
+															cards.forEach(function(card, index, list) {
+																card.index--;
+																card.save();
 															});
-															Card.find(decriment).exec(
-																function(teh_error, cards) {
-																	cards.forEach(function(card, index, list) {
-																		card.index--;
-																		card.save();
-																	});
 
-																	p0.hand = handSort1;
-																	p0.field = fieldSort1;
-																	p1.hand = handSort2;
-																	p1.field = fieldSort2;
+															p0.hand = handSort1;
+															p0.field = fieldSort1;
+															p1.hand = handSort2;
+															p1.field = fieldSort2;
 
-																	var players = [p0, p1];
+															var players = [p0, p1];
 
-																	console.log(players);
-																	res.send({success: true});
-																	Game.publishUpdate(foundGame.id, {
-																		players: players,
-																		// deck: deckSort,
-																	});
-																});
+															console.log(players);
+															res.send({
+																success: true
+															});
+															Game.publishUpdate(foundGame.id, {
+																players: players,
+																// deck: deckSort,
+															});
 														});
+												});
 
-												// });
+											// });
 
 
 
@@ -1121,73 +1123,75 @@ module.exports = {
 											playerSort[1].field.add(handSort2[req.body.index].id);
 
 											playerSort[1].save();
-												// function(er, s) {
+											// function(er, s) {
 
-													var path = '';
-													//Local changes for clients
-													fieldSort2.push(handSort2.splice(req.body.index, 1)[0]);
-													fieldSort2[fieldSort2.length - 1].index = fieldSort2.length - 1;
+											var path = '';
+											//Local changes for clients
+											fieldSort2.push(handSort2.splice(req.body.index, 1)[0]);
+											fieldSort2[fieldSort2.length - 1].index = fieldSort2.length - 1;
 
-													//Change index of Card just moved to field on server
-													Card.findOne(fieldSort2[fieldSort2.length - 1].id).exec(
-														function(cardE, card) {
-															card.index = fieldSort1.length - 1;
-															card.isGlasses = true;
+											//Change index of Card just moved to field on server
+											Card.findOne(fieldSort2[fieldSort2.length - 1].id).exec(
+												function(cardE, card) {
+													card.index = fieldSort1.length - 1;
+													card.isGlasses = true;
 
-															switch (card.suit) {
-																case 0:
-																	path = "images/cards/Glasses_Clubs.jpg"
-																	break;
-																case 1:
-																	path = "images/cards/Glasses_Diamonds.jpg"
-																	break;
-																case 2:
-																	path = "images/cards/Glasses_Hearts.jpg"
-																	break;
-																case 3:
-																	path = "images/cards/Glasses_Spades.jpg"
-																	break;
+													switch (card.suit) {
+														case 0:
+															path = "images/cards/Glasses_Clubs.jpg"
+															break;
+														case 1:
+															path = "images/cards/Glasses_Diamonds.jpg"
+															break;
+														case 2:
+															path = "images/cards/Glasses_Hearts.jpg"
+															break;
+														case 3:
+															path = "images/cards/Glasses_Spades.jpg"
+															break;
 
-															}
-															card.img = path;
-															card.save();
-															console.log("\nCard just moved to field");
-															console.log(card);
+													}
+													card.img = path;
+													card.save();
+													console.log("\nCard just moved to field");
+													console.log(card);
 
-															fieldSort2[fieldSort2.length - 1].img = path;
-															fieldSort2[fieldSort2.length - 1].isGlasses = true;
+													fieldSort2[fieldSort2.length - 1].img = path;
+													fieldSort2[fieldSort2.length - 1].isGlasses = true;
 
-															//Change the indices of Cards in hand after the moved Card
-															var decriment = [];
-															handSort2.forEach(function(card, index, hand) {
-																if (index >= req.body.index) {
-																	decriment.push(card.id);
-																}
+													//Change the indices of Cards in hand after the moved Card
+													var decriment = [];
+													handSort2.forEach(function(card, index, hand) {
+														if (index >= req.body.index) {
+															decriment.push(card.id);
+														}
+													});
+													Card.find(decriment).exec(
+														function(teh_error, cards) {
+															cards.forEach(function(card, index, list) {
+																card.index--;
+																card.save();
 															});
-															Card.find(decriment).exec(
-																function(teh_error, cards) {
-																	cards.forEach(function(card, index, list) {
-																		card.index--;
-																		card.save();
-																	});
 
-																	p0.hand = handSort1;
-																	p0.field = fieldSort1;
-																	p1.hand = handSort2;
-																	p1.field = fieldSort2;
+															p0.hand = handSort1;
+															p0.field = fieldSort1;
+															p1.hand = handSort2;
+															p1.field = fieldSort2;
 
-																	var players = [p0, p1];
+															var players = [p0, p1];
 
-																	console.log(players);
-																	res.send({success: true});
-																	Game.publishUpdate(foundGame.id, {
-																		players: players,
-																		// deck: deckSort,
-																	});
-																});
+															console.log(players);
+															res.send({
+																success: true
+															});
+															Game.publishUpdate(foundGame.id, {
+																players: players,
+																// deck: deckSort,
+															});
 														});
+												});
 
-												// });
+											// });
 
 
 
