@@ -37,13 +37,16 @@
 
 
         <div ng-controller='gameController as game' ng-show='homepage.gameView'>
-            <div> Game Name: {{game.name}}      Game Id: {{game.id}} 
+            <div> Game Name: {{game.name}}      Game Id: {{game.id}} Glasses: {{game.glasses}}
 
 
             <div id="op_wrap">
                 <div class='hand_wrap'>
                     <p>Opponent's Hand</p>
-                    <img ng-repeat="card in game.players[(game.playerNum + 1) % 2].hand" class='card' id="{{card.img}}" src="images/word-ace-card-back.jpg" alt="{{card.alt}}"></img>
+                    <!-- Cardback when you have no glasses -->
+                    <img ng-hide="game.glasses" ng-repeat="card in game.players[(game.playerNum + 1) % 2].hand" class='card' id="{{card.img}}" src="images/word-ace-card-back.jpg" alt="{{card.alt}}"></img>
+                    <!-- Card front when you have glasses -->
+                     <img ng-show="game.glasses" ng-repeat="card in game.players[(game.playerNum + 1) % 2].hand" class='card' id="{{card.img}}" ng-src="{{card.img}}" alt="{{card.alt}}"></img>
                 </div>
                 <div class='field_wrap'>
                     <p>Opponent's Field:</p>

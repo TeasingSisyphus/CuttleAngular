@@ -48,6 +48,7 @@ var sortPlayers = function(players) {
 
 	return sorted;
 };
+
 //Creates an array of integers starting @ start, ending @ stop and incrimenting by step
 var range = function(start, stop, step) {
 	var a = [start],
@@ -73,7 +74,7 @@ var winner = function(game, fields) {
 		function(card, index, field) {
 			if (card.rank === 13) {
 				p0Kings++;
-			} else if (card.rank <= 10) {
+			} else if (card.rank <= 10 && !card.isGlasses) {
 				p0Points += card.rank;
 			}
 		});
@@ -82,7 +83,7 @@ var winner = function(game, fields) {
 		function(card, index, fiel) {
 			if (card.rank === 13) {
 				p1Kings++;
-			} else if (card.rank <= 10) {
+			} else if (card.rank <= 10 && !card.isGlasses) {
 				p1Points += card.rank;
 			}
 		});
@@ -94,29 +95,36 @@ var winner = function(game, fields) {
 		case 0:
 			if (p0Points >= 21) {
 				console.log("\nPlayer 0 has won with " + p0Points + " points");
+				game.log.push("\nPlayer 0 has won with " + p0Points + " points");
 				game.winner = 0;
 			}
 			break;
 		case 1:
 			if (p0Points >= 14) {
 				console.log("\nPlayer 0 has won with " + p0Points + " points and 1 King");
+				game.log.push("\nPlayer 0 has won with " + p0Points + " points and 1 King");
 				game.winner = 0;
 			}
 			break;
 		case 2:
 			if (p0Points >= 10) {
 				console.log("\nPlayer 0 has won with " + p0Points + " points and 2 Kings");
+				game.log.push("\nPlayer 0 has won with " + p0Points + " points and 2 Kings");
 				game.winner = 0;
 			}
 			break;
 		case 3:
 			if (p0Points >= 7) {
 				console.log("\nPlayer 0 has won with " + p0Points + " points and 3 Kings");
+				game.log.push("\nPlayer 0 has won with " + p0Points + " points and 3 Kings");
+				game.winner = 0;
 			}
 			break;
 		case 4:
 			if (p0Points >= 5) {
 				console.log("\nPlayer 0 has won with " + p0Points + " points and 4 Kings");
+				game.log.push("\nPlayer 0 has won with " + p0Points + " points and 4 Kings");
+				game.winner = 0;
 			}
 	}
 
@@ -125,30 +133,35 @@ var winner = function(game, fields) {
 		case 0:
 			if (p1Points >= 21) {
 				console.log("\nPlayer 1 has won with " + p1Points + " points");
+				game.log.push("\nPlayer 1 has won with " + p1Points + " points");
 				game.winner = 1;
 			}
 			break;
 		case 1:
 			if (p1Points >= 14) {
 				console.log("\nPlayer 1 has won with " + p1Points + " points and 1 King");
+				game.log.push("\nPlayer 1 has won with " + p1Points + " points and 1 King");
 				game.winner = 1;
 			}
 			break;
 		case 2:
 			if (p1Points >= 10) {
 				console.log("\nPlayer 1 has won with " + p1Points + " points and 2 Kings");
+				game.log.push("\nPlayer 1 has won with " + p1Points + " points and 2 Kings");
 				game.winner = 1;
 			}
 			break;
 		case 3:
 			if (p1Points >= 7) {
 				console.log("\nPlayer 1 has won with " + p1Points + " points and 3 Kings");
+				game.log.push("\nPlayer 1 has won with " + p1Points + " points and 3 Kings");
 				game.winner = 1;
 			}
 			break;
 		case 4:
 			if (p1Points >= 5) {
 				console.log("\nPlayer 1 has won with " + p1Points + " points and 4 Kings");
+				game.log.push("\nPlayer 1 has won with " + p1Points + " points and 4 Kings");
 				game.winner = 1;
 			}
 	}
@@ -971,7 +984,7 @@ module.exports = {
 
 	glasses: function(req, res) {
 		if (req.isSocket && req.body.hasOwnProperty('id') && req.body.hasOwnProperty('index')) {
-			console.log("Glasses play requested for game " + req.body.index);
+			console.log("\nGlasses play requested for game " + req.body.index);
 			Game.findOne(req.body.id).populateAll().exec(
 				function(err, foundGame) {
 					if (err || !foundGame) {
@@ -989,8 +1002,6 @@ module.exports = {
 									});
 								} else {
 									var playerSort = sortPlayers(pop_players);
-									console.log("\nLogging playerSort for glasses");
-									console.log(playerSort);
 									var pNum = null;
 
 
@@ -1008,7 +1019,7 @@ module.exports = {
 										});
 									}
 									if ((pNum === 0 || pNum === 1) && (pNum === foundGame.turn % 2)) {
-										console.log("\nGlasses play is legal for game " + foundGame.id);
+										console.log("\nGlasses play is legal for game " + foundGame.id + " and player " + pNum);
 
 
 										var p0 = new PlayerTemp;
@@ -1016,8 +1027,8 @@ module.exports = {
 
 										var handSort1 = sortCards(playerSort[0].hand);
 										var handSort2 = sortCards(playerSort[1].hand);
-										var fieldSort1 = sortCards(playerSort[0].field);
 
+										var fieldSort1 = sortCards(playerSort[0].field);
 										var fieldSort2 = sortCards(playerSort[1].field);
 
 										if (pNum === 0) {
@@ -1029,8 +1040,8 @@ module.exports = {
 											playerSort[0].hand.remove(handSort1[req.body.index].id);
 											playerSort[0].field.add(handSort1[req.body.index].id);
 
-											playerSort[0].save(
-												function(er, s) {
+											playerSort[0].save();
+												// function(er, s) {
 
 													var path = '';
 													//Local changes for clients
@@ -1038,9 +1049,9 @@ module.exports = {
 													fieldSort1[fieldSort1.length - 1].index = fieldSort1.length - 1;
 
 													//Change index of Card just moved to field on server
-													Card.findOne(fieldSort2[fieldSort2.length - 1].id).exec(
+													Card.findOne(fieldSort1[fieldSort1.length - 1].id).exec(
 														function(cardE, card) {
-															card.index = fieldSort2.length - 1;
+															card.index = fieldSort1.length - 1;
 															card.isGlasses = true;
 
 															switch (card.suit) {
@@ -1064,39 +1075,123 @@ module.exports = {
 															console.log(card);
 
 															fieldSort1[fieldSort1.length - 1].img = path;
-														});
-													//Change the indices of Cards in hand after the moved Card
-													var decriment = [];
-													handSort1.forEach(function(card, index, hand) {
-														if (index >= req.body.index) {
-															decriment.push(card.id);
-														}
-													});
-													Card.find(decriment).exec(
-														function(teh_error, cards) {
-															cards.forEach(function(card, index, list) {
-																card.index--;
-																card.save();
+															fieldSort1[fieldSort1.length - 1].isGlasses = true;
+
+															//Change the indices of Cards in hand after the moved Card
+															var decriment = [];
+															handSort1.forEach(function(card, index, hand) {
+																if (index >= req.body.index) {
+																	decriment.push(card.id);
+																}
 															});
+															Card.find(decriment).exec(
+																function(teh_error, cards) {
+																	cards.forEach(function(card, index, list) {
+																		card.index--;
+																		card.save();
+																	});
+
+																	p0.hand = handSort1;
+																	p0.field = fieldSort1;
+																	p1.hand = handSort2;
+																	p1.field = fieldSort2;
+
+																	var players = [p0, p1];
+
+																	console.log(players);
+																	res.send({success: true});
+																	Game.publishUpdate(foundGame.id, {
+																		players: players,
+																		// deck: deckSort,
+																	});
+																});
 														});
 
-												});
+												// });
 
 
 
-										} //End of correct turn conditional
-										p0.hand = handSort1;
-										p0.field = fieldSort1;
-										p1.hand = handSort2;
-										p1.field = fieldSort2;
+										} else if (pNum === 1) {
+											var log = "Player 1 played the " + handSort2[req.body.index].alt + " as glasses";
+											foundGame.log.push(log);
+											foundGame.turn++;
+											foundGame.save();
 
-										var players = [p0, p1];
+											playerSort[1].hand.remove(handSort2[req.body.index].id);
+											playerSort[1].field.add(handSort2[req.body.index].id);
 
-										Game.publishUpdate(foundGame.id, {
-											players: players,
-											// deck: deckSort,
-											success: true
-										});
+											playerSort[1].save();
+												// function(er, s) {
+
+													var path = '';
+													//Local changes for clients
+													fieldSort2.push(handSort2.splice(req.body.index, 1)[0]);
+													fieldSort2[fieldSort2.length - 1].index = fieldSort2.length - 1;
+
+													//Change index of Card just moved to field on server
+													Card.findOne(fieldSort2[fieldSort2.length - 1].id).exec(
+														function(cardE, card) {
+															card.index = fieldSort1.length - 1;
+															card.isGlasses = true;
+
+															switch (card.suit) {
+																case 0:
+																	path = "images/cards/Glasses_Clubs.jpg"
+																	break;
+																case 1:
+																	path = "images/cards/Glasses_Diamonds.jpg"
+																	break;
+																case 2:
+																	path = "images/cards/Glasses_Hearts.jpg"
+																	break;
+																case 3:
+																	path = "images/cards/Glasses_Spades.jpg"
+																	break;
+
+															}
+															card.img = path;
+															card.save();
+															console.log("\nCard just moved to field");
+															console.log(card);
+
+															fieldSort2[fieldSort2.length - 1].img = path;
+															fieldSort2[fieldSort2.length - 1].isGlasses = true;
+
+															//Change the indices of Cards in hand after the moved Card
+															var decriment = [];
+															handSort2.forEach(function(card, index, hand) {
+																if (index >= req.body.index) {
+																	decriment.push(card.id);
+																}
+															});
+															Card.find(decriment).exec(
+																function(teh_error, cards) {
+																	cards.forEach(function(card, index, list) {
+																		card.index--;
+																		card.save();
+																	});
+
+																	p0.hand = handSort1;
+																	p0.field = fieldSort1;
+																	p1.hand = handSort2;
+																	p1.field = fieldSort2;
+
+																	var players = [p0, p1];
+
+																	console.log(players);
+																	res.send({success: true});
+																	Game.publishUpdate(foundGame.id, {
+																		players: players,
+																		// deck: deckSort,
+																	});
+																});
+														});
+
+												// });
+
+
+
+										}
 
 									} else {
 										console.log("Wrong player's turn in game " + foundGame.id + " for glasses play");

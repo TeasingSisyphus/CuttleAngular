@@ -5,6 +5,11 @@ a [Sails](http://sailsjs.org) application
 
 
 PREVIOUS:
+	-Enabled Glasses Eight
+		-Glasses reveal opponent's hand and do not count for points
+		-Glasses still get the card class, so they are a little small
+		-Controller code is kinda gross: awkward double-placement of game stuff (publishUpdate() and send() ) that should be called once at the bottom
+			-This is to combat the GODDAMNED ASYNCHRONICITY
 	-Added gamelog
 		-Improved Card.alt for better readability 
 			-Still only reads number of rank (use bigger switch statement to read rank as a word ie 1 = One, 13 = King)
@@ -31,10 +36,7 @@ PREVIOUS:
 	-Client can request to be subscribed to a game
 
 NEXT:
-	-Enable Glasses Eights
-		-Create different pictures for glasses
-		-Either use different tag, or toggleable directive to make opponent's cards visible/not
-		-Find a way to display the eight differently if it is glasses (change its img)
+
 	-Enable One-Off Effects
 	-Clean up DOM
 		-Make space for hands and fields before they are filled with cards
