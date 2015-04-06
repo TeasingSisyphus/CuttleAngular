@@ -49,6 +49,16 @@ module.exports = {
       model: 'game'
     },
 
+    //Foreign key to game if this card is on the stack
+    stack: {
+      model: 'game'
+    },
+
+    //Index of target if this card is a targeting one-off
+    target: {
+      type: 'integer'
+    },
+
     //Foreign key to player if this card is in a player's hand
     hand: {
       model: 'player'

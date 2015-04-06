@@ -147,6 +147,7 @@
 		this.selIndex = null;
 		this.selected = false;
 		this.glasses = false;
+		this.stacking = false;
 
 		/////////////////////
 		//Root Scope Events//
@@ -282,10 +283,62 @@
 				}
 
 			}
-		}
+		};
+
+		//Request playing a number card as a one-off
+		this.pushStack = function() {
+			if ($scope.game.selected) {
+				if ($scope.game.stacking) {
+						if ($scope.game.players[$scope.game.playerNum].hand[$scope.game.selIndex].rank === 2) {
+							console.log("Requesting to play card " + $scope.selIndex + " as counter to previous one-off");
+							$scope.game.stacking = false;
+							socket.get('/game/pushStack', {
+								id: $scope.game.id,
+								index: $scope.game.selIndex
+							}, function(res) {
+								console.log(res);
+								console.log("Deselcting after pushing counter to the stack");
+								$scope.game.selected = false;
+								$scope.game.selIndex = null;
+								$scope.game.selImg      = 'images/word-ace-card-back.jpg';
+								$scope.game.stacking = false;
+								$scope.$apply();
+							});
+						} else {
+							var conf = confirm("You can only play a two as a reaction to a one-off. Would you like to counter your opponent's one-off with a two?");
+							if (!conf) {
+								$scope.game.stacking = false;
+								console.log("Player declined to counter one-off. Requesting collapseStack");
+								//Call collapsStack
+							}
+						}
+
+				} else {
+
+					if ($scope.game.players[$scope.game.playerNum].hand[$scope.game.selIndex].rank <= 9 && $scope.game.players[$scope.game.playerNum].hand[$scope.game.selIndex].rank !== 8) {
+						console.log("\nRequesting to push one-off to stack");
+
+						socket.get('/game/pushStack', {
+							id: $scope.game.id,
+							index: $scope.game.selIndex
+						},
+						function(res) {
+							console.log(res);
+							console.log("Deselecting after pushing one-off to stack");
+							$scope.game.selIndex = null;
+							$scope.game.selected = false;
+							$scope.game.selImg = 'images/word-ace-card-back.jpg';
+							$scope.$apply();
+						});
+					}
+				}
+
+			}
+		};
 
 		socket.on('game', function(obj) {
 			console.log('\nGame event fired');
+			console.log(obj);
 			switch (obj.verb) {
 				case 'updated':
 					if (obj.data.hasOwnProperty('game')) {
@@ -309,6 +362,18 @@
 					if (obj.data.hasOwnProperty('scrap')) {
 						$scope.game.scrap = obj.data.scrap;
 					}
+					break;
+				case 'messaged':
+					var conf = confirm('Player ' + ($scope.game.playerNum + 1) % 2 + ' has played the ' + obj.data.stack[obj.data.stack.length - 1].alt + " as a one-off. Do you wish to counter with a 2?\nIf so, Select the two and hit the one-off button");
+					if (conf) {
+						$scope.game.stacking = true;
+					} else {
+						console.log("Player declined to counter opponent's one-off with a two. Requesting to collapseStack");
+						//Call collapseStack
+					}
+					break;
+
+				
 
 			}
 			$scope.$apply();

@@ -62,6 +62,12 @@ module.exports = {
       via: 'scrap'
     },
 
+    //Collection of all one-off effects waiting to be resolved
+    stack: {
+      collection: 'card',
+      via: 'stack'
+    },
+    
     //Log of all moves made, stored as strings
     log: {
       type: 'array',

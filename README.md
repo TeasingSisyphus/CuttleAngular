@@ -38,6 +38,9 @@ PREVIOUS:
 NEXT:
 
 	-Enable One-Off Effects
+		-Server doesn't need it to be your turn to pushStack
+			-Ensure this can't be played out of turn inappropriately
+		-Begin collapseStack
 	-Clean up DOM
 		-Make space for hands and fields before they are filled with cards
 

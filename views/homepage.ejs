@@ -57,8 +57,9 @@
             <div id='midWrap'>
                 <button ng-click="game.shuffle()">Shuffle Deck</button>
                 <button ng-click="game.deal()">Deal Hands</button>
-                <button ng-click="game.draw()">Draw</button>
                 <button ng-click="game.playGlasses()">Play Glasses Eight</button>
+                <button ng-click="game.draw()">Draw</button>
+                <button ng-click="game.pushStack()">Play One-Off</button>
                 <img id='selector' class='card' ng-src='{{game.selImg}}'></img> <!-- ng-show='{{game.selected}}' -->
                 <div>{{game.scrap.length}} Cards in Scrap</div>
             </div>
