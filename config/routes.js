@@ -55,7 +55,9 @@ module.exports.routes = {
   '/game/draw': 'GameController.draw',
   '/game/toField': 'GameController.toField',
   '/game/scuttle': 'GameController.scuttle',
-  'game/glasses': 'GameController.glasses'
+  '/game/glasses': 'GameController.glasses',
+  '/game/pushStack': 'GameController.pushStack',
+  '/game/collapseStack' : 'GameController.collapseStack'
 
 
 };

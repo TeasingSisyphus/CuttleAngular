@@ -221,7 +221,7 @@
 
 		//Request playing a card specified by game.selIndex to your field
 		this.toField = function() {
-			if ($scope.game.selected) {
+			if ($scope.game.selected && !$scope.game.stacking) {
 				console.log("\nCard " + $scope.game.selIndex + " is selcted; requesting to move to field");
 				socket.get('/game/toField', {
 						id: $scope.game.id,
@@ -240,7 +240,7 @@
 
 		//Request scuttling an opponent's card with one from your hand (both will be scrapped)
 		this.scuttle = function(target_index) {
-			if ($scope.game.selected) {
+			if ($scope.game.selected && !$scope.game.stacking) {
 				console.log("\nRequesting to scuttle card " + target_index + " with card " + $scope.game.selIndex + " from hand");
 				socket.get('/game/scuttle', {
 						id: $scope.game.id,
@@ -260,11 +260,11 @@
 
 		//Request playing an eight as glasses (will reveal opponent's hand)
 		this.playGlasses = function() {
-			if ($scope.game.selected) {
+			if ($scope.game.selected && !$scope.game.stacking) {
 				if ($scope.game.players[$scope.game.playerNum].hand[$scope.game.selIndex].rank === 8) {
 					console.log("\nRequesting to play card " + $scope.game.selIndex + " as glasses");
 
-					socket.get('game/glasses', {
+					socket.get('/game/glasses', {
 							id: $scope.game.id,
 							index: $scope.game.selIndex
 						},
@@ -308,8 +308,8 @@
 							var conf = confirm("You can only play a two as a reaction to a one-off. Would you like to counter your opponent's one-off with a two?");
 							if (!conf) {
 								$scope.game.stacking = false;
-								console.log("Player declined to counter one-off. Requesting collapseStack");
-								//Call collapsStack
+								console.log("Player declined to counter one-off.");
+								$scope.game.collapseStack();
 							}
 						}
 
@@ -335,6 +335,17 @@
 
 			}
 		};
+
+		this.collapseStack = function() {
+			console.log("\nRequesting collapseStack");
+
+			socket.get('/game/collapseStack', {
+				id: $scope.game.id,
+			},
+			function(res) {
+				console.log(res);
+			});
+		}
 
 		socket.on('game', function(obj) {
 			console.log('\nGame event fired');
@@ -369,7 +380,7 @@
 						$scope.game.stacking = true;
 					} else {
 						console.log("Player declined to counter opponent's one-off with a two. Requesting to collapseStack");
-						//Call collapseStack
+						$scope.game.collapseStack();
 					}
 					break;
 

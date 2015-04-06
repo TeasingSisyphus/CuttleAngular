@@ -5,6 +5,7 @@ a [Sails](http://sailsjs.org) application
 
 
 PREVIOUS:
+	-Finished pushStack 1st draft
 	-Enabled Glasses Eight
 		-Glasses reveal opponent's hand and do not count for points
 		-Glasses still get the card class, so they are a little small
@@ -38,9 +39,9 @@ PREVIOUS:
 NEXT:
 
 	-Enable One-Off Effects
+		-Begin collapseStack
 		-Server doesn't need it to be your turn to pushStack
 			-Ensure this can't be played out of turn inappropriately
-		-Begin collapseStack
 	-Clean up DOM
 		-Make space for hands and fields before they are filled with cards
 
@@ -68,3 +69,6 @@ BUGS:
 		-Player seems to have hand and field deleted?
 			-running consecutive save() methods caused the fuckup for UNKNOWN REASONS
 				-Making the second save() happen inside a callback passed to the first save() fixed it ????
+
+	-FINDING CARDS
+		-PopulateAll() after querying for cards to ensure no lost associations

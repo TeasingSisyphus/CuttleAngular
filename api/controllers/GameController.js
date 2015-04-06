@@ -1455,6 +1455,93 @@ module.exports = {
 		}
 	},
 
+	collapseStack: function(req, res) {
+		if ( req.isSocket && req.body.hasOwnProperty('id') ) {
+			console.log("\ncollapseStack requested for game " + req.body.id);
+
+			Game.findOne(req.body.id).populateAll().exec(
+			function(err, foundGame) {
+				if (err || !foundGame) {
+					console.log("Game " + req.body.id + " not found for collapseStack");
+					res.send(404);
+				} else if (foundGame.players.length === foundGame.playerLimit) {
+					Player.find([foundGame.players[0].id, foundGame.players[1].id]).populateAll().exec(
+					function(e, pop_players) {
+						if (e || !pop_players) {
+							console.log("Players not found for game " + req.body.id + " for collapseStack");
+						} else {
+									var playerSort = sortPlayers(pop_players);
+									var pNum = null;
+
+
+									if (req.socket.id === playerSort[0].socketId) {
+										pNum = 0;
+									} else if (req.socket.id === playerSort[1].socketId) {
+
+										pNum = 1;
+
+									} else {
+
+										console.log('Requesting socket: ' + req.socket.id + " is not in game: " + foundGame.id);
+										res.send(404);
+
+									}
+										var p0 = new PlayerTemp;
+										var p1 = new PlayerTemp;
+
+										var deckSort = sortCards(foundGame.deck);
+										var scrapSort = sortCards(foundGame.scrap);
+										var stackSort = sortCards(foundGame.stack);
+
+										var handSort1 = sortCards(playerSort[0].hand);
+										var fieldSort1 = sortCards(playerSort[0].field);
+
+										var handSort2 = sortCards(playerSort[1].hand);
+										var fieldSort2 = sortCards(playerSort[1].field);
+
+										var scrappedIds = [];
+
+										var scrapLen = scrapSort.length;
+										var stackLen = stackSort.length;
+
+										if ( (stackSort.length % 2) === 0 ) {
+											stackSort.forEach(
+											function(card, index, stack) {
+												foundGame.scrap.add(card.id);
+												foundGame.stack.remove(card.id);
+
+												scrappedIds.push(card.id);
+
+											});
+											scrapSort = scrapSort.concat( stackSort.splice(0, stackSort.length) );
+											for (var i = scrapLen; i < scrapLen + stackLen; i++) {
+												scrapSort[i].index = i;
+											}
+
+											Card.find(scrappedIds).populateAll().exec(
+											function(cardE, cards) {
+												cards.forEach(
+												function(card, index, list) {
+													card.index = scrapLen + index;
+													card.save();
+												});
+											});
+
+											foundGame.turn++;
+											foundGame.save();
+
+											Game.publishUpdate(foundGame.id, {
+												scrap: scrapSort,
+												stack: stackSort
+											});
+										}							
+						}
+					});
+				}
+			});
+		}
+	},
+
 	updateAll: function(req, res) {
 		console.log('Publishing All updates');
 		Game.find().populate('players').exec(
