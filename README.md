@@ -5,6 +5,8 @@ a [Sails](http://sailsjs.org) application
 
 
 PREVIOUS:
+	-COMPLETED ONE-OFFS:
+		-Aces (don't currently deal with attachments, however)
 	-Finished pushStack 1st draft
 	-Enabled Glasses Eight
 		-Glasses reveal opponent's hand and do not count for points
@@ -40,8 +42,16 @@ NEXT:
 
 	-Enable One-Off Effects
 		-Begin collapseStack
+			-chooseEffect is now in place
+				-One-Offs:
+					-Twos (destroyTargetFace)
+					-Five
+					-Six
+
+
 		-Server doesn't need it to be your turn to pushStack
 			-Ensure this can't be played out of turn inappropriately
+				-Being done only on the client side atm
 	-Clean up DOM
 		-Make space for hands and fields before they are filled with cards
 
@@ -55,12 +65,7 @@ BUGS:
 		-If two players join in rapid (not that rapid) succession, server will consider both players to be player 0
 	-HOMEPAGE GAMEDISPLAY
 		-The first tab to load the homepage occasionally doesn't get updated when games are created (including its own creations)
-	-toField
-		-A jack was played to the field like a point card
-		-Sometimes a point card can't be played to the field if you have a jack in hand
-			-Have been unable to replicate the bug
-			-CONDITIONAL CHECKS WRONG CARD
-				-USE SORTED HANDS
+
 	-Scuttling
 		-Indices of cards in field are off
 		-Scrap pile sometimes only registers as the cards newly added to it
@@ -72,3 +77,7 @@ BUGS:
 
 	-FINDING CARDS
 		-PopulateAll() after querying for cards to ensure no lost associations
+
+REFACTORING:
+	-Confusions with the asynchronicity of .save() have lead to amibiguity regarding how changes can be made to models
+		-Look to avoid unnecessary queries and saves

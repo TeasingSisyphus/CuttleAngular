@@ -175,19 +175,41 @@ var chooseEffect = function(game, players, deck, scrap, hands, fields, str) {
 	console.log(str);
 	switch (str) {
 		case "destroyAllPoints":
-			console.log("Da kid played uh-ace!");
 			var cardId = game.stack[0].id;
 
-			destroyAllPoints(game, players, scrap, hands, fields);
+			var scrap = destroyAllPoints(game, players, scrap, hands, fields);
 
 
-			game.scrap.add(cardId);
-			game.stack.remove(cardId);
-			game.save();
-			players[0].save();
-			players[1].save();
 			break;
 	}
+	game.scrap.add(cardId);
+	game.stack.remove(cardId);
+	Card.findOne(cardId).populateAll().exec(
+		function(erro, oneOff) {
+			oneOff.index = scrap.length;
+			oneOff.save();
+		});
+	game.save(function(err, savedGame) {
+		players[0].field = [];
+		players[0].save(function (er, saveP0) {
+			players[1].field = [];
+			players[1].save(function(e, saveP1) {
+
+				var p0 = new PlayerTemp;
+				var p1 = new PlayerTemp;
+
+				p0.hand  = players[0].hand;
+				p0.field = players[0].field;
+				p1.hand  = players[1].hand;
+				p1.field = players[1].field;
+
+				Game.publishUpdate(savedGame.id, {
+					players: [p0, p1],
+					scrap: scrap
+				});
+			});
+		});
+	});
 
 
 };
@@ -198,13 +220,14 @@ var chooseEffect = function(game, players, deck, scrap, hands, fields, str) {
 
 var destroyAllPoints = function(game, players, scrap, hands, fields) {
 	console.log("\nDestroying all points in game " + game.id);
-	console.log(fields);
 	var scrappedIds = [];
 	var scrapLen = scrap.length;
-	for (i = 0; i < Math.max(fields[0].length, fields[1].length); i++) {
+
+	var max = Math.max(fields[0].length, fields[1].length);
+	for (i = 0; i < max; i++) {
 		if (fields[0].length > 0) {
 			game.scrap.add(fields[0][0].id);
-			players[0].field.remove(fields[0][0].id);
+			// players[0].field.remove(fields[0][0].id);
 
 			scrappedIds.push(fields[0][0].id);
 
@@ -212,7 +235,7 @@ var destroyAllPoints = function(game, players, scrap, hands, fields) {
 		}
 		if (fields[1].length > 0) {
 			game.scrap.add(fields[1][0].id);
-			players[1].field.remove(fields[1][0].id);
+			// players[1].field.remove(fields[1][0].id);
 
 			scrappedIds.push(fields[1][0].id);
 
@@ -220,14 +243,21 @@ var destroyAllPoints = function(game, players, scrap, hands, fields) {
 		}
 
 	}
+
+
 	Card.find(scrappedIds).populateAll().exec(
 		function(errr, cards) {
 			cards.forEach(
 				function(card, index, list) {
 					card.index = scrapLen + index;
-					card.save();
+					scrap[scrapLen + index].index = scrapLen + index;
+					card.save(function(ee, ss) {
+					});
 				});
 		});
+
+	return scrap;
+
 };
 
 module.exports = {
@@ -1546,8 +1576,7 @@ module.exports = {
 										res.send(404);
 
 									}
-									var p0 = new PlayerTemp;
-									var p1 = new PlayerTemp;
+
 
 									var deckSort = sortCards(foundGame.deck);
 									var scrapSort = sortCards(foundGame.scrap);
