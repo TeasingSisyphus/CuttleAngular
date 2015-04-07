@@ -67,11 +67,22 @@ module.exports = {
       collection: 'card',
       via: 'stack'
     },
-    
+
     //Log of all moves made, stored as strings
     log: {
       type: 'array',
       defaultsTo: []
+    },
+    //A json object representing which effect each card will have
+    //NOTE: You can actually store FUNCTIONS, rather than strings here
+    rules: {
+      type: 'json',
+      defaultsTo: {
+        ace: 'destroyAllPoints',
+        two: 'destroyTargetFace',
+        five: 'drawTwo',
+        six: 'destroyAllFaces'
+      }
     }
 
   }

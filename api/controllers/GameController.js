@@ -169,6 +169,66 @@ var winner = function(game, fields) {
 
 };
 
+//Choose a one-off effect to perform
+var chooseEffect = function(game, players, deck, scrap, hands, fields, str) {
+	console.log("\nChoosing effect for game " + game.id);
+	console.log(str);
+	switch (str) {
+		case "destroyAllPoints":
+			console.log("Da kid played uh-ace!");
+			var cardId = game.stack[0].id;
+
+			destroyAllPoints(game, players, scrap, hands, fields);
+
+
+			game.scrap.add(cardId);
+			game.stack.remove(cardId);
+			game.save();
+			players[0].save();
+			players[1].save();
+			break;
+	}
+
+
+};
+
+/////////////////////
+//One-off Functions//
+/////////////////////
+
+var destroyAllPoints = function(game, players, scrap, hands, fields) {
+	console.log("\nDestroying all points in game " + game.id);
+	console.log(fields);
+	var scrappedIds = [];
+	var scrapLen = scrap.length;
+	for (i = 0; i < Math.max(fields[0].length, fields[1].length); i++) {
+		if (fields[0].length > 0) {
+			game.scrap.add(fields[0][0].id);
+			players[0].field.remove(fields[0][0].id);
+
+			scrappedIds.push(fields[0][0].id);
+
+			scrap.push(fields[0].splice(0, 1)[0]);
+		}
+		if (fields[1].length > 0) {
+			game.scrap.add(fields[1][0].id);
+			players[1].field.remove(fields[1][0].id);
+
+			scrappedIds.push(fields[1][0].id);
+
+			scrap.push(fields[1].splice(0, 1)[0]);
+		}
+
+	}
+	Card.find(scrappedIds).populateAll().exec(
+		function(errr, cards) {
+			cards.forEach(
+				function(card, index, list) {
+					card.index = scrapLen + index;
+					card.save();
+				});
+		});
+};
 
 module.exports = {
 	//This action subscribes a socket to the Game class room, then
@@ -511,7 +571,7 @@ module.exports = {
 										res.send(404);
 									}
 
-									if ((pNum === 0 || pNum === 1) ) {
+									if ((pNum === 0 || pNum === 1)) {
 										if (pNum === foundGame.turn % 2) {
 
 											if (pop_players[pNum].hand.length < foundGame.handLimit) {
@@ -585,7 +645,7 @@ module.exports = {
 													deck: deckSort,
 													players: players
 												});
-												
+
 											} else {
 												console.log("This player's hand is full");
 												res.send("Your hand is full!");
@@ -1255,221 +1315,221 @@ module.exports = {
 
 	//Moves a card from a player's hand to the game's stack
 	pushStack: function(req, res) {
-		if ( req.isSocket && req.body.hasOwnProperty('id') && req.body.hasOwnProperty('id') ) {
+		if (req.isSocket && req.body.hasOwnProperty('id') && req.body.hasOwnProperty('id')) {
 			console.log("\nGame " + req.body.id + " requesting to push one-off to stack");
 			Game.findOne(req.body.id).populateAll().exec(function(err, foundGame) {
 				if (err || !foundGame) {
 					console.log("Game " + req.body.id + " not found for pushStack");
 					res.send(404);
 				} else if (foundGame.players.length === foundGame.playerLimit) {
-						Player.find([foundGame.players[0].id, foundGame.players[1].id]).populateAll().exec(
-							function(e, pop_players) {
-								if (e || !pop_players) {
-									console.log("Players not found in game: " + foundGame.id + " for scuttle");
-									res.send(404);
+					Player.find([foundGame.players[0].id, foundGame.players[1].id]).populateAll().exec(
+						function(e, pop_players) {
+							if (e || !pop_players) {
+								console.log("Players not found in game: " + foundGame.id + " for scuttle");
+								res.send(404);
+							} else {
+
+								var playerSort = sortPlayers(pop_players);
+								var pNum = null;
+
+
+								if (req.socket.id === playerSort[0].socketId) {
+									pNum = 0;
+								} else if (req.socket.id === playerSort[1].socketId) {
+
+									pNum = 1;
+
 								} else {
 
-									var playerSort = sortPlayers(pop_players);
-									var pNum = null;
+									console.log('Requesting socket: ' + req.socket.id + " is not in game: " + foundGame.id);
+									res.send(404);
 
+								}
+								var p0 = new PlayerTemp;
+								var p1 = new PlayerTemp;
 
-									if (req.socket.id === playerSort[0].socketId) {
-										pNum = 0;
-									} else if (req.socket.id === playerSort[1].socketId) {
+								var deckSort = sortCards(foundGame.deck);
+								var scrapSort = sortCards(foundGame.scrap);
+								var stackSort = sortCards(foundGame.stack);
 
-										pNum = 1;
+								var handSort1 = sortCards(playerSort[0].hand);
+								var fieldSort1 = sortCards(playerSort[0].field);
 
-									} else {
+								var handSort2 = sortCards(playerSort[1].hand);
+								var fieldSort2 = sortCards(playerSort[1].field);
+								if ((pNum === 0 || pNum === 1)) {
+									if (pNum === 0) {
+										if ((foundGame.turn % 2 === 0) || (stackSort.length > 0 && handSort1[req.body.index].rank === 2)) {
 
-										console.log('Requesting socket: ' + req.socket.id + " is not in game: " + foundGame.id);
-										res.send(404);
+											if (req.body.hasOwnProperty('target')) {
+												//set card's target, push it to stack, remove from hand
+											} else {
+												console.log("Player 0 requested pushStack");
 
-									}
-										var p0 = new PlayerTemp;
-										var p1 = new PlayerTemp;
-
-										var deckSort = sortCards(foundGame.deck);
-										var scrapSort = sortCards(foundGame.scrap);
-										var stackSort = sortCards(foundGame.stack);
-
-										var handSort1 = sortCards(playerSort[0].hand);
-										var fieldSort1 = sortCards(playerSort[0].field);
-
-										var handSort2 = sortCards(playerSort[1].hand);
-										var fieldSort2 = sortCards(playerSort[1].field);
-									if ( (pNum === 0 || pNum === 1) ) {
-										if (pNum === 0) {
-											if ( (foundGame.turn % 2 === 0) || (stackSort.length > 0 && handSort1[req.body.index].rank === 2) ) {
-
-												if ( req.body.hasOwnProperty('target') ) {
-													//set card's target, push it to stack, remove from hand
-												} else {
-													console.log("Player 0 requested pushStack");
-
-													foundGame.stack.add(handSort1[req.body.index].id);
-													foundGame.save(
+												foundGame.stack.add(handSort1[req.body.index].id);
+												var log = "Player " + pNum + " has played the " + playerSort[pNum].hand[req.body.index].alt + " for its one-off effect";
+												foundGame.log.push(log);
+												foundGame.save(
 													function(err_or, savedGame) {
 
 														playerSort[0].hand.remove(handSort1[req.body.index].id);
 														playerSort[0].save(
-														function(er_ror, savedPlayer) {
-															stackSort.push(handSort1.splice(req.body.index, 1)[0]);
-															stackSort[stackSort.length - 1].index = stackSort.length - 1;
-															console.log("\nLogging stackSort");
-															console.log(stackSort);
+															function(er_ror, savedPlayer) {
+																stackSort.push(handSort1.splice(req.body.index, 1)[0]);
+																stackSort[stackSort.length - 1].index = stackSort.length - 1;
+																console.log("\nLogging stackSort");
+																console.log(stackSort);
 
-															// Change index of Card just moved to stack
-															Card.findOne(stackSort[stackSort.length - 1].id).exec(
-																function(cardE, card) {
-																	card.index = stackSort.length - 1;
-																	card.save();
-
-																});
-															// Change the indices of Cards in hand after the moved Card
-															var decriment = [];
-															handSort1.forEach(function(card, index, hand) {
-																if (index >= req.body.index) {
-																	decriment.push(card.id);
-																}
-															});
-
-															Card.find(decriment).exec(
-																function(teh_error, cards) {
-																	cards.forEach(function(card, index, list) {
-																		card.index--;
+																// Change index of Card just moved to stack
+																Card.findOne(stackSort[stackSort.length - 1].id).exec(
+																	function(cardE, card) {
+																		card.index = stackSort.length - 1;
 																		card.save();
+
 																	});
-																	// console.log("\nLogging cards with indices decrimented");
-																	// console.log(cards);
+																// Change the indices of Cards in hand after the moved Card
+																var decriment = [];
+																handSort1.forEach(function(card, index, hand) {
+																	if (index >= req.body.index) {
+																		decriment.push(card.id);
+																	}
 																});
 
-															p0.hand  = handSort1;
-															p0.field = fieldSort1;
-															p1.hand  = handSort2;
-															p1.field = fieldSort2;
+																Card.find(decriment).exec(
+																	function(teh_error, cards) {
+																		cards.forEach(function(card, index, list) {
+																			card.index--;
+																			card.save();
+																		});
+																		// console.log("\nLogging cards with indices decrimented");
+																		// console.log(cards);
+																	});
 
-															var players = [p0, p1];
+																p0.hand = handSort1;
+																p0.field = fieldSort1;
+																p1.hand = handSort2;
+																p1.field = fieldSort2;
 
-															Game.publishUpdate(foundGame.id, {
-																stack: stackSort,
-																players: players
+																var players = [p0, p1];
+
+																Game.publishUpdate(foundGame.id, {
+																	stack: stackSort,
+																	players: players
+																});
+
+																//Message will be sent to only the other player
+																Game.message(foundGame, {
+																	stack: stackSort,
+																	players: players
+																}, req);
+
+																res.send(200);
+
 															});
-
-															//Message will be sent to only the other player
-															Game.message(foundGame, {
-																stack: stackSort,
-																players: players
-															}, req);
-
-															res.send(200);
-
-														});
 													});
 
 
 
-
-												}
 											}
-
-
 										}
-										if (pNum === 1) {
-											if ( (foundGame.turn % 2 === 1) || (stackSort.length > 0 && handSort2[req.body.index].rank === 2) ) {
 
-												if ( req.body.hasOwnProperty('target') ) {
-													//set card's target, push it to stack, remove from hand
-												} else {
 
-													foundGame.stack.add(handSort2[req.body.index].id);
-													foundGame.save(
+									}
+									if (pNum === 1) {
+										if ((foundGame.turn % 2 === 1) || (stackSort.length > 0 && handSort2[req.body.index].rank === 2)) {
+
+											if (req.body.hasOwnProperty('target')) {
+												//set card's target, push it to stack, remove from hand
+											} else {
+
+												foundGame.stack.add(handSort2[req.body.index].id);
+												foundGame.save(
 													function(err_or, savedGame) {
 
 														playerSort[1].hand.remove(handSort2[req.body.index].id);
 														playerSort[1].save(
-														function(er_ror, savedPlayer) {
-															stackSort.push(handSort2.splice(req.body.index, 1)[0]);
-															stackSort[stackSort.length - 1].index = stackSort.length - 1;
-															console.log("\nLogging stackSort");
-															console.log(stackSort);
+															function(er_ror, savedPlayer) {
+																stackSort.push(handSort2.splice(req.body.index, 1)[0]);
+																stackSort[stackSort.length - 1].index = stackSort.length - 1;
+																console.log("\nLogging stackSort");
+																console.log(stackSort);
 
-															// Change index of Card just moved to stack
-															Card.findOne(stackSort[stackSort.length - 1].id).exec(
-																function(cardE, card) {
-																	card.index = stackSort.length - 1;
-																	card.save();
-																});
-															// Change the indices of Cards in hand after the moved Card
-															var decriment = [];
-															handSort2.forEach(function(card, index, hand) {
-																if (index >= req.body.index) {
-																	decriment.push(card.id);
-																}
-															});
-
-															Card.find(decriment).exec(
-																function(teh_error, cards) {
-																	cards.forEach(function(card, index, list) {
-																		card.index--;
+																// Change index of Card just moved to stack
+																Card.findOne(stackSort[stackSort.length - 1].id).exec(
+																	function(cardE, card) {
+																		card.index = stackSort.length - 1;
 																		card.save();
 																	});
-																	// console.log("\nLogging cards with indices decrimented");
-																	// console.log(cards);
+																// Change the indices of Cards in hand after the moved Card
+																var decriment = [];
+																handSort2.forEach(function(card, index, hand) {
+																	if (index >= req.body.index) {
+																		decriment.push(card.id);
+																	}
 																});
 
-															p0.hand  = handSort1;
-															p0.field = fieldSort1;
-															p1.hand  = handSort2;
-															p1.field = fieldSort2;
+																Card.find(decriment).exec(
+																	function(teh_error, cards) {
+																		cards.forEach(function(card, index, list) {
+																			card.index--;
+																			card.save();
+																		});
+																		// console.log("\nLogging cards with indices decrimented");
+																		// console.log(cards);
+																	});
 
-															var players = [p0, p1];
+																p0.hand = handSort1;
+																p0.field = fieldSort1;
+																p1.hand = handSort2;
+																p1.field = fieldSort2;
 
-															Game.publishUpdate(foundGame.id, {
-																stack: stackSort,
-																players: players
+																var players = [p0, p1];
+
+																Game.publishUpdate(foundGame.id, {
+																	stack: stackSort,
+																	players: players
+																});
+
+																//Message will be sent to only the other player
+																Game.message(foundGame, {
+																	stack: stackSort,
+																	players: players
+																}, req);
+																res.send(200);
+
 															});
-
-															//Message will be sent to only the other player
-															Game.message(foundGame, {
-																stack: stackSort,
-																players: players
-															}, req);
-															res.send(200);
-
-														});
 													});
 
 
 
-
-												}											
 											}
 										}
-									} else {
-										console.log("Wrong player's turn in Game " + foundGame.id + " for pushStack");
-									}		
+									}
+								} else {
+									console.log("Wrong player's turn in Game " + foundGame.id + " for pushStack");
 								}
-							});			
+							}
+						});
 				}
 			});
 		}
 	},
 
 	collapseStack: function(req, res) {
-		if ( req.isSocket && req.body.hasOwnProperty('id') ) {
+		if (req.isSocket && req.body.hasOwnProperty('id')) {
 			console.log("\ncollapseStack requested for game " + req.body.id);
 
 			Game.findOne(req.body.id).populateAll().exec(
-			function(err, foundGame) {
-				if (err || !foundGame) {
-					console.log("Game " + req.body.id + " not found for collapseStack");
-					res.send(404);
-				} else if (foundGame.players.length === foundGame.playerLimit) {
-					Player.find([foundGame.players[0].id, foundGame.players[1].id]).populateAll().exec(
-					function(e, pop_players) {
-						if (e || !pop_players) {
-							console.log("Players not found for game " + req.body.id + " for collapseStack");
-						} else {
+				function(err, foundGame) {
+					if (err || !foundGame) {
+						console.log("Game " + req.body.id + " not found for collapseStack");
+						res.send(404);
+					} else if (foundGame.players.length === foundGame.playerLimit) {
+						Player.find([foundGame.players[0].id, foundGame.players[1].id]).populateAll().exec(
+							function(e, pop_players) {
+								if (e || !pop_players) {
+									console.log("Players not found for game " + req.body.id + " for collapseStack");
+								} else {
 									var playerSort = sortPlayers(pop_players);
 									var pNum = null;
 
@@ -1486,26 +1546,28 @@ module.exports = {
 										res.send(404);
 
 									}
-										var p0 = new PlayerTemp;
-										var p1 = new PlayerTemp;
+									var p0 = new PlayerTemp;
+									var p1 = new PlayerTemp;
 
-										var deckSort = sortCards(foundGame.deck);
-										var scrapSort = sortCards(foundGame.scrap);
-										var stackSort = sortCards(foundGame.stack);
+									var deckSort = sortCards(foundGame.deck);
+									var scrapSort = sortCards(foundGame.scrap);
+									var stackSort = sortCards(foundGame.stack);
 
-										var handSort1 = sortCards(playerSort[0].hand);
-										var fieldSort1 = sortCards(playerSort[0].field);
+									var handSort1 = sortCards(playerSort[0].hand);
+									var fieldSort1 = sortCards(playerSort[0].field);
 
-										var handSort2 = sortCards(playerSort[1].hand);
-										var fieldSort2 = sortCards(playerSort[1].field);
+									var handSort2 = sortCards(playerSort[1].hand);
+									var fieldSort2 = sortCards(playerSort[1].field);
 
-										var scrappedIds = [];
+									var scrappedIds = [];
 
-										var scrapLen = scrapSort.length;
-										var stackLen = stackSort.length;
+									var scrapLen = scrapSort.length;
+									var stackLen = stackSort.length;
 
-										if ( (stackSort.length % 2) === 0 ) {
-											stackSort.forEach(
+									//If the number of one-offs is even, everything is countered and nothing changes
+									//All cards are moved to the scrap and the turn is incrimented
+									if ((stackSort.length % 2) === 0) {
+										stackSort.forEach(
 											function(card, index, stack) {
 												foundGame.scrap.add(card.id);
 												foundGame.stack.remove(card.id);
@@ -1513,32 +1575,65 @@ module.exports = {
 												scrappedIds.push(card.id);
 
 											});
-											scrapSort = scrapSort.concat( stackSort.splice(0, stackSort.length) );
-											for (var i = scrapLen; i < scrapLen + stackLen; i++) {
-												scrapSort[i].index = i;
-											}
+										scrapSort = scrapSort.concat(stackSort.splice(0, stackSort.length));
+										for (var i = scrapLen; i < scrapLen + stackLen; i++) {
+											scrapSort[i].index = i;
+										}
 
-											Card.find(scrappedIds).populateAll().exec(
+										Card.find(scrappedIds).populateAll().exec(
 											function(cardE, cards) {
 												cards.forEach(
-												function(card, index, list) {
-													card.index = scrapLen + index;
-													card.save();
-												});
+													function(card, index, list) {
+														card.index = scrapLen + index;
+														card.save();
+													});
 											});
 
-											foundGame.turn++;
-											foundGame.save();
+										foundGame.turn++;
+										foundGame.save();
 
-											Game.publishUpdate(foundGame.id, {
-												scrap: scrapSort,
-												stack: stackSort
+										Game.publishUpdate(foundGame.id, {
+											scrap: scrapSort,
+											stack: stackSort
+										});
+										//Otherwise the first card in the stack DOES get resolved
+									} else {
+										for (i = stackSort.length - 1; i > 0; i--) {
+											foundGame.scrap.add(stackSort[i].id);
+											foundGame.stack.remove(stackSort[i].id);
+											scrappedIds.push(stackSort[i].id);
+										}
+
+										scrapSort = scrapSort.concat(stackSort.splice(1, stackSort.length - 1));
+
+										Card.find(scrappedIds).populateAll().exec(
+											function(cardE, cards) {
+												cards.forEach(
+													function(card, index, list) {
+														card.index = scrapLen + index;
+														card.save();
+													});
 											});
-										}							
-						}
-					});
-				}
-			});
+										console.log("\nLogging scrap then stack.");
+										console.log(scrapSort);
+										console.log(stackSort);
+
+										foundGame.turn++;
+										foundGame.save(
+											function(err, savedGame) {
+
+												switch (stackSort[0].rank) {
+													case 1:
+														var str = foundGame.rules.ace;
+														break;
+												}
+												chooseEffect(savedGame, playerSort, deckSort, scrapSort, [handSort1, handSort2], [fieldSort1, fieldSort2], str);
+											});
+									}
+								}
+							});
+					}
+				});
 		}
 	},
 
