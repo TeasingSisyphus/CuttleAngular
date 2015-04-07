@@ -177,8 +177,9 @@ var chooseEffect = function(game, players, deck, scrap, hands, fields, str) {
 		case "destroyAllPoints":
 			var cardId = game.stack[0].id;
 
-			var scrap = destroyAllPoints(game, players, scrap, hands, fields);
-
+			//destroyAllPoints returns an array: [scrap, hands, fields]
+			var arr = destroyAllPoints(game, players, scrap, hands, fields);
+			var scrap = arr[0];
 
 			break;
 	}
@@ -190,9 +191,11 @@ var chooseEffect = function(game, players, deck, scrap, hands, fields, str) {
 			oneOff.save();
 		});
 	game.save(function(err, savedGame) {
-		players[0].field = [];
+		players[0].hand = arr[1][0]
+		players[0].field = arr[2][0];
 		players[0].save(function (er, saveP0) {
-			players[1].field = [];
+			players[1].hand  = arr[1][1];
+			players[1].field = arr[2][1];
 			players[1].save(function(e, saveP1) {
 
 				var p0 = new PlayerTemp;
@@ -226,20 +229,26 @@ var destroyAllPoints = function(game, players, scrap, hands, fields) {
 	var max = Math.max(fields[0].length, fields[1].length);
 	for (i = 0; i < max; i++) {
 		if (fields[0].length > 0) {
-			game.scrap.add(fields[0][0].id);
-			// players[0].field.remove(fields[0][0].id);
-
-			scrappedIds.push(fields[0][0].id);
-
-			scrap.push(fields[0].splice(0, 1)[0]);
+			if (fields[0][0].rank <= 10) {
+				game.scrap.add(fields[0][0].id);
+							players[0].field.remove(fields[0][0].id);
+				
+							scrappedIds.push(fields[0][0].id);
+				
+							scrap.push(fields[0].splice(0, 1)[0]);
+			}
 		}
 		if (fields[1].length > 0) {
-			game.scrap.add(fields[1][0].id);
-			// players[1].field.remove(fields[1][0].id);
+			if (fields[1][0].rank <= 10) {
 
-			scrappedIds.push(fields[1][0].id);
+				game.scrap.add(fields[1][0].id);
+				players[1].field.remove(fields[1][0].id);
 
-			scrap.push(fields[1].splice(0, 1)[0]);
+				scrappedIds.push(fields[1][0].id);
+
+				scrap.push(fields[1].splice(0, 1)[0]);
+
+			}
 		}
 
 	}
@@ -256,7 +265,7 @@ var destroyAllPoints = function(game, players, scrap, hands, fields) {
 				});
 		});
 
-	return scrap;
+	return [scrap, hands, fields];
 
 };
 
