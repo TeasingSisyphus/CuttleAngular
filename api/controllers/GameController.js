@@ -193,17 +193,17 @@ var chooseEffect = function(game, players, deck, scrap, hands, fields, str) {
 	game.save(function(err, savedGame) {
 		players[0].hand = arr[1][0]
 		players[0].field = arr[2][0];
-		players[0].save(function (er, saveP0) {
-			players[1].hand  = arr[1][1];
+		players[0].save(function(er, saveP0) {
+			players[1].hand = arr[1][1];
 			players[1].field = arr[2][1];
 			players[1].save(function(e, saveP1) {
 
 				var p0 = new PlayerTemp;
 				var p1 = new PlayerTemp;
 
-				p0.hand  = players[0].hand;
+				p0.hand = players[0].hand;
 				p0.field = players[0].field;
-				p1.hand  = players[1].hand;
+				p1.hand = players[1].hand;
 				p1.field = players[1].field;
 
 				Game.publishUpdate(savedGame.id, {
@@ -226,20 +226,25 @@ var destroyAllPoints = function(game, players, scrap, hands, fields) {
 	var scrappedIds = [];
 	var scrapLen = scrap.length;
 
+	var offest0 = 0;
+	var offset1 = 0;
+
 	var max = Math.max(fields[0].length, fields[1].length);
 	for (i = 0; i < max; i++) {
 		if (fields[0].length > 0) {
-			if (fields[0][0].rank <= 10) {
+			if (fields[0][offset0].rank <= 10) {
 				game.scrap.add(fields[0][0].id);
-							players[0].field.remove(fields[0][0].id);
-				
-							scrappedIds.push(fields[0][0].id);
-				
-							scrap.push(fields[0].splice(0, 1)[0]);
+				players[0].field.remove(fields[0][0].id);
+
+				scrappedIds.push(fields[0][0].id);
+
+				scrap.push(fields[0].splice(0, 1)[0]);
+			} else {
+				offset0++;
 			}
 		}
 		if (fields[1].length > 0) {
-			if (fields[1][0].rank <= 10) {
+			if (fields[1][offset1].rank <= 10) {
 
 				game.scrap.add(fields[1][0].id);
 				players[1].field.remove(fields[1][0].id);
@@ -248,6 +253,8 @@ var destroyAllPoints = function(game, players, scrap, hands, fields) {
 
 				scrap.push(fields[1].splice(0, 1)[0]);
 
+			} else {
+				offset1++;
 			}
 		}
 
@@ -260,8 +267,7 @@ var destroyAllPoints = function(game, players, scrap, hands, fields) {
 				function(card, index, list) {
 					card.index = scrapLen + index;
 					scrap[scrapLen + index].index = scrapLen + index;
-					card.save(function(ee, ss) {
-					});
+					card.save(function(ee, ss) {});
 				});
 		});
 
