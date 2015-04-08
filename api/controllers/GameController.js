@@ -192,30 +192,30 @@ var chooseEffect = function(game, players, deck, scrap, hands, fields, str) {
 
 			oneOff.save();
 
-		game.save(function(err, savedGame) {
-			players[0].hand = arr[1][0]
-			players[0].field = arr[2][0];
-			players[0].save(function(er, saveP0) {
-				players[1].hand = arr[1][1];
-				players[1].field = arr[2][1];
-				players[1].save(function(e, saveP1) {
+			game.save(function(err, savedGame) {
+				players[0].hand = arr[1][0]
+				players[0].field = arr[2][0];
+				players[0].save(function(er, saveP0) {
+					players[1].hand = arr[1][1];
+					players[1].field = arr[2][1];
+					players[1].save(function(e, saveP1) {
 
-					var p0 = new PlayerTemp;
-					var p1 = new PlayerTemp;
+						var p0 = new PlayerTemp;
+						var p1 = new PlayerTemp;
 
-					p0.hand = players[0].hand;
-					p0.field = players[0].field;
-					p1.hand = players[1].hand;
-					p1.field = players[1].field;
+						p0.hand = players[0].hand;
+						p0.field = players[0].field;
+						p1.hand = players[1].hand;
+						p1.field = players[1].field;
 
-					winner(savedGame, [p0.field, p1.field]);
-					Game.publishUpdate(savedGame.id, {
-						players: [p0, p1],
-						scrap: scrap
+						winner(savedGame, [p0.field, p1.field]);
+						Game.publishUpdate(savedGame.id, {
+							players: [p0, p1],
+							scrap: scrap
+						});
 					});
 				});
 			});
-		});
 		});
 
 
@@ -237,6 +237,8 @@ var destroyAllPoints = function(game, players, scrap, hands, fields) {
 	for (i = 0; i < max; i++) {
 		if (offset0 < fields[0].length) {
 			if (fields[0][offset0].rank <= 10) {
+				console.log("Removing card " + offset0 + " from field0");
+				console.log(fields[0][offset0]);
 				game.scrap.add(fields[0][offset0].id);
 				players[0].field.remove(fields[0][offset0].id);
 
@@ -245,7 +247,7 @@ var destroyAllPoints = function(game, players, scrap, hands, fields) {
 				scrap.push(fields[0].splice(offset0, 1)[0]);
 
 				//Decriment indices of cards after card removed from field0
-				for (var j = i; j < fields[0].length; j++) {
+				for (var j = offset0; j < fields[0].length; j++) {
 					fields[0][j].index--;
 				}
 			} else {
@@ -254,6 +256,8 @@ var destroyAllPoints = function(game, players, scrap, hands, fields) {
 		}
 		if (offset1 < fields[1].length) {
 			if (fields[1][offset1].rank <= 10) {
+				console.log("Removing card " + offset1 + " from field1");
+				console.log(fields[0][offset1]);
 
 				game.scrap.add(fields[1][offset1].id);
 				players[1].field.remove(fields[1][offset1].id);
@@ -263,7 +267,7 @@ var destroyAllPoints = function(game, players, scrap, hands, fields) {
 				scrap.push(fields[1].splice(offset1, 1)[0]);
 
 				//Decriment indices of cards after card removed from field1
-				for(var k = i; k < fields[1].length; k++) {
+				for (var k = offset1; k < fields[1].length; k++) {
 					fields[1][k].index--;
 				}
 
@@ -290,6 +294,8 @@ var destroyAllPoints = function(game, players, scrap, hands, fields) {
 
 	Card.find(scrappedIds).populateAll().exec(
 		function(errr, cards) {
+			console.log("Logging newly scrapped cards");
+			console.log(cards);
 			cards.forEach(
 				function(card, index, list) {
 					card.index = scrapLen + index;
