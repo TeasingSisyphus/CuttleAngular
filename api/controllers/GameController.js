@@ -179,7 +179,7 @@ var chooseEffect = function(game, players, deck, scrap, hands, fields, str) {
 
 			//destroyAllPoints returns an array: [scrap, hands, fields]
 			var arr = destroyAllPoints(game, players, scrap, hands, fields);
-			var scrap = arr[0];
+			scrap = arr[0];
 
 			break;
 	}
@@ -188,31 +188,35 @@ var chooseEffect = function(game, players, deck, scrap, hands, fields, str) {
 	Card.findOne(cardId).populateAll().exec(
 		function(erro, oneOff) {
 			oneOff.index = scrap.length;
+			scrap.push(oneOff);
+
 			oneOff.save();
-		});
-	game.save(function(err, savedGame) {
-		players[0].hand = arr[1][0]
-		players[0].field = arr[2][0];
-		players[0].save(function(er, saveP0) {
-			players[1].hand = arr[1][1];
-			players[1].field = arr[2][1];
-			players[1].save(function(e, saveP1) {
 
-				var p0 = new PlayerTemp;
-				var p1 = new PlayerTemp;
+		game.save(function(err, savedGame) {
+			players[0].hand = arr[1][0]
+			players[0].field = arr[2][0];
+			players[0].save(function(er, saveP0) {
+				players[1].hand = arr[1][1];
+				players[1].field = arr[2][1];
+				players[1].save(function(e, saveP1) {
 
-				p0.hand = players[0].hand;
-				p0.field = players[0].field;
-				p1.hand = players[1].hand;
-				p1.field = players[1].field;
+					var p0 = new PlayerTemp;
+					var p1 = new PlayerTemp;
 
-				Game.publishUpdate(savedGame.id, {
-					players: [p0, p1],
-					scrap: scrap
+					p0.hand = players[0].hand;
+					p0.field = players[0].field;
+					p1.hand = players[1].hand;
+					p1.field = players[1].field;
+
+					winner(savedGame, [p0.field, p1.field]);
+					Game.publishUpdate(savedGame.id, {
+						players: [p0, p1],
+						scrap: scrap
+					});
 				});
 			});
 		});
-	});
+		});
 
 
 };
@@ -226,39 +230,62 @@ var destroyAllPoints = function(game, players, scrap, hands, fields) {
 	var scrappedIds = [];
 	var scrapLen = scrap.length;
 
-	var offest0 = 0;
+	var offset0 = 0;
 	var offset1 = 0;
 
 	var max = Math.max(fields[0].length, fields[1].length);
 	for (i = 0; i < max; i++) {
-		if (fields[0].length > 0) {
+		if (offset0 < fields[0].length) {
 			if (fields[0][offset0].rank <= 10) {
-				game.scrap.add(fields[0][0].id);
-				players[0].field.remove(fields[0][0].id);
+				game.scrap.add(fields[0][offset0].id);
+				players[0].field.remove(fields[0][offset0].id);
 
-				scrappedIds.push(fields[0][0].id);
+				scrappedIds.push(fields[0][offset0].id);
 
-				scrap.push(fields[0].splice(0, 1)[0]);
+				scrap.push(fields[0].splice(offset0, 1)[0]);
+
+				//Decriment indices of cards after card removed from field0
+				for (var j = i; j < fields[0].length; j++) {
+					fields[0][j].index--;
+				}
 			} else {
 				offset0++;
 			}
 		}
-		if (fields[1].length > 0) {
+		if (offset1 < fields[1].length) {
 			if (fields[1][offset1].rank <= 10) {
 
-				game.scrap.add(fields[1][0].id);
-				players[1].field.remove(fields[1][0].id);
+				game.scrap.add(fields[1][offset1].id);
+				players[1].field.remove(fields[1][offset1].id);
 
-				scrappedIds.push(fields[1][0].id);
+				scrappedIds.push(fields[1][offset1].id);
 
-				scrap.push(fields[1].splice(0, 1)[0]);
+				scrap.push(fields[1].splice(offset1, 1)[0]);
+
+				//Decriment indices of cards after card removed from field1
+				for(var k = i; k < fields[1].length; k++) {
+					fields[1][k].index--;
+				}
 
 			} else {
 				offset1++;
 			}
 		}
 
+	} //End of scrapping loop
+
+	//Save changes to indices of cards in fields
+	max = Math.max(fields[0].length, fields[1].length);
+	for (var n = 0; n < max; n++) {
+		if (n < fields[0].length) {
+			fields[0][n].save();
+		}
+
+		if (n < fields[1].length) {
+			fields[1][n].save();
+		}
 	}
+
 
 
 	Card.find(scrappedIds).populateAll().exec(
@@ -267,7 +294,7 @@ var destroyAllPoints = function(game, players, scrap, hands, fields) {
 				function(card, index, list) {
 					card.index = scrapLen + index;
 					scrap[scrapLen + index].index = scrapLen + index;
-					card.save(function(ee, ss) {});
+					card.save();
 				});
 		});
 

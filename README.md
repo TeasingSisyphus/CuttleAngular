@@ -61,6 +61,11 @@ NEXT:
 
 
 BUGS:
+	-ACES
+		-The indices of face cards left on the table are sometimes incorrect
+			-Last king from p0 had an index of 2 when field was only Q, K
+			-Seems to happen when there are points in between two face cards
+		-Indices of first two point cards in scrap are sometimes switched
 	-PLAYER NUMBER
 		-If two players join in rapid (not that rapid) succession, server will consider both players to be player 0
 	-HOMEPAGE GAMEDISPLAY
