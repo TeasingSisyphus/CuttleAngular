@@ -67,6 +67,8 @@ BUGS:
 				-FIXED
 		-Indices of first two point cards in scrap are sometimes switched
 			-Didn't happen last time with p1 having POINT, QUEEN, POINT
+			-FIXED:
+				-Model.find() returns an array of models NOT ORDERED according to the id's sent as parameters
 	-PLAYER NUMBER
 		-If two players join in rapid (not that rapid) succession, server will consider both players to be player 0
 	-HOMEPAGE GAMEDISPLAY

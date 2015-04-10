@@ -300,10 +300,25 @@ var destroyAllPoints = function(game, players, scrap, hands, fields) {
 
 	Card.find(scrappedIds).populateAll().exec(
 		function(errr, cards) {
-			console.log("Logging newly scrapped cards");
-			console.log(cards);
-			cards.forEach(
+			// console.log("\n\nLogging scrappedIds within find");
+			// console.log(scrappedIds);
+			// console.log("Logging newly scrapped cards");
+			// console.log(cards);
+			var cardsSort = [];
+
+			for (var i = 0; i < scrappedIds.length; i++) {
+				for (var j = 0; j < cards.length; j++) {
+					if  (cards[j].id === scrappedIds[i]) {
+						cardsSort.push(cards[j]);
+					}
+				}
+			}
+
+			// console.log("\nLogging cardsSort");
+			// console.log(cardsSort);
+			cardsSort.forEach(
 				function(card, index, list) {
+					// console.log(card);
 					card.index = scrapLen + index;
 					scrap[scrapLen + index].index = scrapLen + index;
 					card.save();
