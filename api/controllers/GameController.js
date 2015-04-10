@@ -209,6 +209,8 @@ var chooseEffect = function(game, players, deck, scrap, hands, fields, str) {
 						p1.field = players[1].field;
 
 						winner(savedGame, [p0.field, p1.field]);
+						console.log("\nLogging scrap to be published");
+						console.log(scrap);
 						Game.publishUpdate(savedGame.id, {
 							players: [p0, p1],
 							scrap: scrap
@@ -257,7 +259,7 @@ var destroyAllPoints = function(game, players, scrap, hands, fields) {
 		if (offset1 < fields[1].length) {
 			if (fields[1][offset1].rank <= 10) {
 				console.log("Removing card " + offset1 + " from field1");
-				console.log(fields[0][offset1]);
+				console.log(fields[1][offset1]);
 
 				game.scrap.add(fields[1][offset1].id);
 				players[1].field.remove(fields[1][offset1].id);
@@ -277,6 +279,10 @@ var destroyAllPoints = function(game, players, scrap, hands, fields) {
 		}
 
 	} //End of scrapping loop
+
+	console.log("\n\nLogging scrapped ids:");
+	console.log(scrappedIds);
+	console.log("\n\n");
 
 	//Save changes to indices of cards in fields
 	max = Math.max(fields[0].length, fields[1].length);
