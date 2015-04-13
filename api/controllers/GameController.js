@@ -170,7 +170,7 @@ var winner = function(game, fields) {
 };
 
 //Choose a one-off effect to perform
-var chooseEffect = function(game, players, deck, scrap, hands, fields, str) {
+var chooseEffect = function(game, players, pNum, deck, scrap, hands, fields, str) {
 	console.log("\nChoosing effect for game " + game.id);
 	console.log(str);
 	switch (str) {
@@ -182,9 +182,25 @@ var chooseEffect = function(game, players, deck, scrap, hands, fields, str) {
 			scrap = arr[0];
 
 			break;
+		case "drawTwo":
+			var cardId = game.stack[0].id;
+
+			//drawTwo returns an array: [deck, hands, fields]
+			var arr = drawTwo(game, players, pNum, deck, hands, fields);
+
+			deck = arr[0];
+
+			game.deck = deck;
+			break;
 	}
 	game.scrap.add(cardId);
 	game.stack.remove(cardId);
+
+	console.log("\n\nLogging game deck in chooseEffect");
+	console.log(game.deck);
+	console.log("\n\nLogging local deck");
+	console.log(deck);
+
 	Card.findOne(cardId).populateAll().exec(
 		function(erro, oneOff) {
 			oneOff.index = scrap.length;
@@ -193,6 +209,8 @@ var chooseEffect = function(game, players, deck, scrap, hands, fields, str) {
 			oneOff.save();
 
 			game.save(function(err, savedGame) {
+				console.log("\n\nLogging savedGame's deck");
+				console.log(savedGame.deck);
 				players[0].hand = arr[1][0]
 				players[0].field = arr[2][0];
 				players[0].save(function(er, saveP0) {
@@ -213,7 +231,8 @@ var chooseEffect = function(game, players, deck, scrap, hands, fields, str) {
 						console.log(scrap);
 						Game.publishUpdate(savedGame.id, {
 							players: [p0, p1],
-							scrap: scrap
+							scrap: scrap,
+							deck: deck
 						});
 					});
 				});
@@ -327,6 +346,29 @@ var destroyAllPoints = function(game, players, scrap, hands, fields) {
 
 	return [scrap, hands, fields];
 
+};
+
+var drawTwo = function(game, players, pNum, deck, hands, fields) {
+	console.log("drawTwo for game " + game.id);
+	if (players[pNum].hand.length < game.handLimit - 1) {
+		console.log("Drawing two cards for player " + pNum);
+
+		players[pNum].hand.add(deck[0].id);
+		game.deck.remove(deck[0].id);
+		players[pNum].hand.add(deck[1].id);
+		game.deck.remove(deck[1].id);
+
+		//USE CONCAT FOR MULTIPLE CARDS AT ONCE
+		hands[pNum] = hands[pNum].concat(deck.splice(0, 2));
+
+		console.log(deck);
+
+		game.save(function(gameErr, savedGame) {
+			console.log("\n\nLogging game's deck");
+			console.log(savedGame.deck);
+		});
+		return [deck, hands, fields];
+	}
 };
 
 module.exports = {
@@ -1724,8 +1766,10 @@ module.exports = {
 													case 1:
 														var str = foundGame.rules.ace;
 														break;
+													case 5:
+														var str = foundGame.rules.five;
 												}
-												chooseEffect(savedGame, playerSort, deckSort, scrapSort, [handSort1, handSort2], [fieldSort1, fieldSort2], str);
+												chooseEffect(savedGame, playerSort, (pNum + 1) % 2, deckSort, scrapSort, [handSort1, handSort2], [fieldSort1, fieldSort2], str);
 											});
 									}
 								}
