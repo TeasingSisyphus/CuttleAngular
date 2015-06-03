@@ -4,6 +4,10 @@ a [Sails](http://sailsjs.org) application
 
 
 
+////////////
+// CODING //
+////////////
+
 PREVIOUS:
 	-COMPLETED ONE-OFFS:
 		-Aces (don't currently deal with attachments, however)
@@ -89,3 +93,20 @@ BUGS:
 REFACTORING:
 	-Confusions with the asynchronicity of .save() have lead to amibiguity regarding how changes can be made to models
 		-Look to avoid unnecessary queries and saves
+//////////////////////////
+// CUTTLE GAME THEORIES //
+//////////////////////////
+	-JOKERS:
+		Used for custom card testing
+		Different effects depending on game mode
+
+	-DUMMY:
+		Max hand limit is 6, MUST play a card first turn
+
+////////////////////
+/ CARD EXPLANATION /
+////////////////////
+	-ACE:
+		The weakest point with the ability to destroy every point card.
+		This power works well with the Ace, as you will be less inclined
+		to play it for points unless you are bluffing.
